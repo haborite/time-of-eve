@@ -1,0 +1,48 @@
+{
+  "name": "time-of-eve",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Scheduling polls that are easy for both humans and AI agents. Cloudflare Workers + D1.",
+  "license": "MIT",
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler dev",
+    "build": "wrangler deploy --dry-run --outdir dist",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate:local": "wrangler d1 migrations apply DB --local",
+    "db:migrate:staging": "wrangler d1 migrations apply DB --remote --env staging",
+    "db:migrate:production": "wrangler d1 migrations apply DB --remote --env production",
+    "admin:create": "node scripts/create-admin.mjs",
+    "deploy:staging": "wrangler deploy --env staging",
+    "deploy:production": "wrangler deploy --env production",
+    "cf-typegen": "wrangler types src/worker-configuration.d.ts"
+  },
+  "dependencies": {
+    "@cf-wasm/resvg": "^0.4.0",
+    "@cf-wasm/satori": "^0.4.2",
+    "@cfworker/json-schema": "^4.1.6",
+    "@cloudflare/workers-oauth-provider": "^1.2.4",
+    "@modelcontextprotocol/sdk": "^1.32.2",
+    "drizzle-orm": "^0.45.4",
+    "hono": "^4.13.19",
+    "zod": "^4.6.7"
+  },
+  "devDependencies": {
+    "@cloudflare/vitest-plugin": "^1.8.3",
+    "drizzle-kit": "^0.31.11",
+    "typescript": "^7.0.2",
+    "vitest": "^4.1.12",
+    "wrangler": "^4.163.0"
+  },
+  "allowScripts": {
+    "esbuild@0.18.20": true,
+    "esbuild@0.25.12": true,
+    "esbuild@0.28.1": true,
+    "esbuild@0.28.2": true,
+    "workerd@1.20260815.1": true,
+    "workerd@1.20261116.1": true
+  }
+}

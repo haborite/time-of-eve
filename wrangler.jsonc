@@ -1,0 +1,73 @@
+// time-of-eve — Cloudflare Workers + D1
+//
+// Environments
+//   (top level)  Local development: `npm run dev` / tests. Uses the local D1 (.wrangler/state), never a remote one.
+//   staging      `wrangler deploy --env staging`    → its own D1 / KV
+//   production   `wrangler deploy --env production` → its own D1 / KV
+//
+// Bindings are not inherited by environments, so each env repeats them.
+// Replace the REPLACE_WITH_… ids after `wrangler d1 create` / `wrangler kv namespace create` (see README).
+// Secrets (never in this file): SECRET_KEY, TURNSTILE_SECRET_KEY  →  `wrangler secret put <NAME> --env <env>`
+// Local secrets live in .dev.vars (copy .dev.vars.example).
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "time-of-eve",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-11-01",
+  "compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
+  "assets": { "directory": "public", "binding": "ASSETS" },
+  "rules": [{ "type": "Text", "globs": ["**/*.md"], "fallthrough": true }],
+  "observability": { "enabled": true },
+  "dev": { "port": 8823 },
+  "triggers": { "crons": ["17 3 * * *"] },
+  "vars": {
+    "PUBLIC_ORIGIN": "http://localhost:8823",
+    "ENVIRONMENT": "local",
+    "TURNSTILE_SITE_KEY": "1x00000000000000000000AA"
+  },
+  "d1_databases": [
+    { "binding": "DB", "database_name": "time-of-eve-local", "database_id": "00000000-0000-0000-0000-000000000000", "migrations_dir": "migrations" }
+  ],
+  "kv_namespaces": [{ "binding": "OAUTH_KV", "id": "00000000000000000000000000000000" }],
+  "ratelimits": [
+    { "name": "RL_WRITE", "namespace_id": "1001", "simple": { "limit": 30, "period": 60 } },
+    { "name": "RL_CREATE", "namespace_id": "1002", "simple": { "limit": 10, "period": 60 } },
+    { "name": "RL_MCP", "namespace_id": "1003", "simple": { "limit": 120, "period": 60 } }
+  ],
+  "env": {
+    "staging": {
+      "name": "time-of-eve-staging",
+      "vars": {
+        "PUBLIC_ORIGIN": "https://staging.example.com",
+        "ENVIRONMENT": "staging",
+        "TURNSTILE_SITE_KEY": "REPLACE_WITH_TURNSTILE_SITE_KEY"
+      },
+      "d1_databases": [
+        { "binding": "DB", "database_name": "time-of-eve-staging", "database_id": "REPLACE_WITH_STAGING_D1_ID", "migrations_dir": "migrations" }
+      ],
+      "kv_namespaces": [{ "binding": "OAUTH_KV", "id": "REPLACE_WITH_STAGING_KV_ID" }],
+      "ratelimits": [
+        { "name": "RL_WRITE", "namespace_id": "2001", "simple": { "limit": 30, "period": 60 } },
+        { "name": "RL_CREATE", "namespace_id": "2002", "simple": { "limit": 10, "period": 60 } },
+        { "name": "RL_MCP", "namespace_id": "2003", "simple": { "limit": 120, "period": 60 } }
+      ]
+    },
+    "production": {
+      "name": "time-of-eve",
+      "vars": {
+        "PUBLIC_ORIGIN": "https://time-of-eve.example.com",
+        "ENVIRONMENT": "production",
+        "TURNSTILE_SITE_KEY": "REPLACE_WITH_TURNSTILE_SITE_KEY"
+      },
+      "d1_databases": [
+        { "binding": "DB", "database_name": "time-of-eve-production", "database_id": "REPLACE_WITH_PRODUCTION_D1_ID", "migrations_dir": "migrations" }
+      ],
+      "kv_namespaces": [{ "binding": "OAUTH_KV", "id": "REPLACE_WITH_PRODUCTION_KV_ID" }],
+      "ratelimits": [
+        { "name": "RL_WRITE", "namespace_id": "3001", "simple": { "limit": 30, "period": 60 } },
+        { "name": "RL_CREATE", "namespace_id": "3002", "simple": { "limit": 10, "period": 60 } },
+        { "name": "RL_MCP", "namespace_id": "3003", "simple": { "limit": 120, "period": 60 } }
+      ]
+    }
+  }
+}
