@@ -158,8 +158,10 @@
     return { text: window.shortDate(d), cls: d.getDay() === 0 ? " sun" : d.getDay() === 6 ? " sat" : "" };
   }
   function removeBtn(key) {
-    var b = el("button", "btn-linklike small", T("この日を外す"));
+    var b = el("button", "btn-linklike small", T("外す"));
     b.type = "button";
+    b.title = T("この日を外す");
+    b.setAttribute("aria-label", T("この日を外す"));
     b.addEventListener("click", function () { setDate(key, false); renderCalendar(); renderGrid(); update(); });
     return b;
   }

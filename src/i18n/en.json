@@ -278,6 +278,7 @@
  "回答者数の上限に達しました": "The maximum number of respondents has been reached",
  "基本情報を入力": "Enter the basics",
  "変更": "Change",
+ "外す": "Remove",
  "失効": "Revoke",
  "小さなウィンドウが開けませんでした。ポップアップを許可してから、もう一度押してください": "Could not open the sign-in window. Allow pop-ups and press the button again.",
  "届いたURLをAIに渡して「私のカレンダーの予定を読んで答えておいて」": "Hand the link to your AI: “Read my calendar and answer this for me.”",

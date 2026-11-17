@@ -8,7 +8,7 @@ import { raw } from "hono/html";
 import { jsDict, t, type Lang } from "../lib/i18n";
 import type { Meta } from "../og/card";
 
-export const ASSET_V = "2";
+export const ASSET_V = "3";
 
 export interface View {
   lang: Lang;
