@@ -27,7 +27,7 @@ function SampleTable({ v }: { v: View }) {
 export function HomePage({ v, meta, settings, mcpUrl, llmsUrl }: { v: View; meta: Meta; settings: Settings; mcpUrl: string; llmsUrl: string }) {
   const open = settings.creation_mode === "anyone";
   return (
-    <Layout v={v} title={`Time of EVE｜${v.t("人間にもAIにも使いやすい日程調整ツール")}`} meta={meta} bodyClass="home" indexable scripts={["home.js"]}>
+    <Layout v={v} title={`Time of EVE｜${v.t("人間にもAIにも使いやすい日程調整ツール")}`} meta={meta} bodyClass="home" indexable scripts={["home.js", "admin.js"]}>
       <section class="home-hero">
         <div class="home-hero-text">
           <p class="home-kicker">{v.t("人間にもAIにも使いやすい日程調整ツール")}</p>
