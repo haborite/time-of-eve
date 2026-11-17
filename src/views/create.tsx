@@ -18,19 +18,17 @@ export function NewPage({ v, meta, maxCandidates, defaultTz, durLabel, turnstile
     <Layout v={v} title={`${v.t("日程をえらぶ")}｜Time of EVE`} meta={meta} bodyClass="newp" scripts={["new.js"]}>
       <div class="page-head">
         <h1 class="page-ttl">{v.t("日程をえらぶ")}</h1>
-        <p>{v.t("3つのステップで候補日時をつくります。最後に確認画面で内容を確かめてから作成・公開します。")}</p>
       </div>
       <div class="steps12">
         <section class="step" aria-labelledby="step1-h">
           <h2 class="step-h" id="step1-h"><span class="step-no">STEP<b>1</b></span><span class="step-arrow" aria-hidden="true"></span><span>{v.t("基本情報を入力")}</span></h2>
           <div class="step-b">
             <div class="frow"><label for="title" class="flabel">{v.t("タイトル")}<span class="need">{v.t("必須")}</span></label>
-              <div class="ffield"><input type="text" id="title" maxlength={200} placeholder={v.t("例: 研究打合せ")} required data-testid="new-title" /></div></div>
+              <div class="ffield"><input type="text" id="title" maxlength={200} placeholder={v.t("例: 打ち合わせ")} required data-testid="new-title" /></div></div>
             <div class="frow"><label for="duration" class="flabel">{v.t("予定時間")}</label>
               <div class="ffield"><select id="duration" class="w-auto" data-testid="new-duration">
                 {DURATIONS.map((m) => <option value={String(m)} selected={m === 60}>{durLabel(m)}</option>)}
-              </select>
-                <span class="fhint">{v.t("1つの候補の長さです。STEP 3 で選んだ時間帯から、この長さの候補を30分ごとの開始時刻で作ります。")}</span></div></div>
+              </select></div></div>
             <div class="frow"><label for="desc" class="flabel">{v.t("補足・備考")}</label>
               <div class="ffield"><textarea id="desc" rows={3} maxlength={2000} placeholder={v.t("開催形式・場所など")}></textarea></div></div>
             <div class="frow"><span class="flabel">{v.t("利用マーク")}</span>
@@ -38,7 +36,7 @@ export function NewPage({ v, meta, maxCandidates, defaultTz, durLabel, turnstile
                 <span><span class="mk mk-yes">○</span>{v.t("参加/可")}</span>
                 <label><input type="checkbox" id="allow-maybe" checked /> <span class="mk mk-maybe">△</span>{v.t("未定")}</label>
                 <span><span class="mk mk-no">×</span>{v.t("不参加/不可")}</span>
-                <span class="fhint">{v.t("回答する人が使えるマークです。△を使わない場合はチェックを外してください。")}</span>
+                <span class="fhint">{v.t("回答する人が使えるマークです。")}</span>
               </div></div>
             <div class="frow"><label for="deadline" class="flabel">{v.t("回答期限")}<span class="opt">{v.t("任意")}</span></label>
               <div class="ffield"><input type="datetime-local" id="deadline" class="w-auto" /></div></div>

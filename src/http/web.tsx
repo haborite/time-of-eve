@@ -171,7 +171,7 @@ web.get("/og/p/:file", async (c) => {
 // ---------- create ----------
 
 const SAMPLE = JSON.stringify({
-  title: "研究打合せ 日程調整", description: "オンライン（Zoom）。各候補1時間。", timezone: "Asia/Tokyo", duration_minutes: 60,
+  title: "打ち合わせ 日程調整", description: "オンライン（Zoom）。各候補1時間。", timezone: "Asia/Tokyo", duration_minutes: 60,
   candidate_ranges: [{ from_date: "2027-01-12", to_date: "2027-01-16", weekdays: ["tue", "thu"], start_time: "13:00", end_time: "17:00" }],
   candidates: [{ start: "2027-01-15T10:00" }],
   response_deadline: "2027-01-10T23:59", show_participant_names: true,

@@ -45,7 +45,7 @@ Rules:
 
 ```json
 {
-  "title": "研究打合せ 日程調整",
+  "title": "打ち合わせ 日程調整",
   "description": "オンライン（Zoom）。1時間。",
   "basis": "Organizer free per calendar 11/15; members prefer weekday afternoons.",
   "timezone": "Asia/Tokyo",

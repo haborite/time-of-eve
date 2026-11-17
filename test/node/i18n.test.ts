@@ -12,7 +12,7 @@ const JA = /[぀-ヿ㐀-鿿！-｠]/;
 
 // sample data and machine-facing text that is intentionally not translated
 const ALLOW = new Set([
-  "研究打合せ 日程調整", "オンライン（Zoom）。各候補1時間。", "Aさん", "Bさん", "AI(Cさん)", "山田 太郎", "日程調整",
+  "打ち合わせ 日程調整", "オンライン（Zoom）。各候補1時間。", "Aさん", "Bさん", "AI(Cさん)", "山田 太郎", "日程調整",
   "日本語", "・", "｜", "月火水木金土日",
 ]);
 
