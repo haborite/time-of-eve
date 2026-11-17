@@ -185,6 +185,14 @@ describe("web pages", () => {
     expect(html.headers.get("Link")).toContain('rel="alternate"; type="text/markdown"');
     const body = await html.text();
     expect(body).toContain('id="boot"');
+    // the browser lays the timeline out in the viewer's time zone from each slot's absolute start
+    const boot = JSON.parse(/<script type="application\/json" id="boot">(.*?)<\/script>/s.exec(body)![1]);
+    expect(boot.tz).toBe("Asia/Tokyo");
+    expect(boot.timeline.step).toBe(30);
+    expect(boot.timeline.at["2030-01-08T13:00"]).toBe(Date.UTC(2030, 0, 8, 4, 0));
+    expect(boot.timeline.at["2030-01-09T10:30"]).toBe(Date.UTC(2030, 0, 9, 1, 30));
+    expect(Object.keys(boot.timeline.at).sort()).toEqual(Object.keys(boot.timeline.open).sort());
+    expect(body).toContain('<span id="tz-note">時刻は Asia/Tokyo</span>'); // no-JS fallback; the script rewrites it
     expect(body).toContain('property="og:image"');
     const ai = await req(path, { headers: { "User-Agent": "Mozilla/5.0 (compatible; Claude-User/1.0)" } });
     expect(ai.headers.get("Content-Type")).toContain("text/markdown");

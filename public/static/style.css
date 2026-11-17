@@ -504,3 +504,12 @@ body.home main { padding-top: 0; }
   .home-h1 { font-size: 23px; }
   .home-ai-links > div { grid-template-columns: 1fr; }
 }
+
+/* display time zone switcher (answer page) */
+.tz-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 12px; margin: 0 0 8px; font-size: 13px; }
+.tz-bar label { display: inline-flex; align-items: center; gap: 6px; min-width: 0; max-width: 100%; }
+.tz-lbl { font-weight: 700; white-space: nowrap; }
+.tz-sel { font-size: 13px; padding: 3px 6px; min-width: 0; max-width: 100%; }
+.tz-diff { color: #a06a00; }
+/* hours without candidates are left out of the timeline: mark the jump */
+.tl .tl-cell.gap, .tl .tl-hour.gap { border-left: 3px double #888 !important; }

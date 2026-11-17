@@ -13,24 +13,86 @@
   var finalized = {};
   boot.finalized.forEach(function (k) { finalized[k] = true; });
 
-  // ---------- geometry ----------
+  // ---------- time zone ----------
+  // Slot keys ("2026-12-01T13:00") are wall-clock times in the poll's zone: answers, counts and the finalized date use
+  // them. Only the layout follows the display zone: tl.at gives each slot's absolute start, and every slot is placed
+  // on the display zone's date and time. Rows are display-zone dates (a window crossing midnight splits into two rows);
+  // columns follow the slots' own boundaries, so zones offset by :15/:45 get :15/:45 columns.
   var pad = function (n) { return String(n).padStart(2, "0"); };
-  var perHour = 60 / tl.step;
-  function slotKey(date, minutes) { return date + "T" + pad(Math.floor(minutes / 60)) + ":" + pad(minutes % 60); }
-  function hhmm(key) { var h = +key.slice(11, 13), m = key.slice(14, 16); return h + ":" + m; }
-  function endOf(key) {
-    var mins = +key.slice(11, 13) * 60 + +key.slice(14, 16) + tl.step;
-    return Math.floor(mins / 60) % 24 + ":" + pad(mins % 60);
+  var STEP = tl.step;
+  var TZ_KEY = "toe-tz";   // "local" | "poll" | an IANA zone; shared by all polls in this browser
+  var localTz = (function () { try { return Intl.DateTimeFormat().resolvedOptions().timeZone || boot.tz; } catch (e) { return boot.tz; } })();
+  var tzChoice = (function () { try { return localStorage.getItem(TZ_KEY) || "local"; } catch (e) { return "local"; } })();
+  var WD_JA = ["月", "火", "水", "木", "金", "土", "日"], WD_EN = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+  var MON_EN = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+  var fmts = {};
+  function validTz(z) { try { new Intl.DateTimeFormat("en-US", { timeZone: z }); return true; } catch (e) { return false; } }
+  function zoneOf(choice) { var z = choice === "poll" ? boot.tz : choice === "local" ? localTz : choice; return validTz(z) ? z : boot.tz; }
+  var tz = zoneOf(tzChoice);
+  /** wall clock of an instant in a zone: {y, mo, d, dow (0 = Monday), min (minutes since midnight)} */
+  function wall(ms, z) {
+    var f = fmts[z] || (fmts[z] = new Intl.DateTimeFormat("en-US", { timeZone: z, hourCycle: "h23", weekday: "short",
+      year: "numeric", month: "numeric", day: "numeric", hour: "numeric", minute: "numeric" }));
+    var o = {};
+    f.formatToParts(new Date(ms)).forEach(function (p) { o[p.type] = p.value; });
+    return { y: +o.year, mo: +o.month, d: +o.day, dow: WD_EN.indexOf(o.weekday), min: (+o.hour % 24) * 60 + +o.minute };
   }
-  // per day: ordered list of slot keys (all columns), and the open ones
-  var days = tl.days.map(function (d, i) {
-    var cols = [];
-    for (var m = tl.hourStart * 60; m < tl.hourEnd * 60; m += tl.step) cols.push(slotKey(d.date, m));
-    var open = cols.filter(function (k) { return tl.open[k]; });
-    return { i: i, date: d.date, label: d.label, short: d.short, dow: d.dow, cols: cols, open: open };
-  });
-  var openOrder = [];
-  days.forEach(function (d) { d.open.forEach(function (k) { openOrder.push(k); }); });
+  function dateLabel(w) { return window.LANG === "en" ? WD_EN[w.dow] + ", " + MON_EN[w.mo - 1] + " " + w.d + ", " + w.y : w.y + "/" + w.mo + "/" + w.d + "(" + WD_JA[w.dow] + ")"; }
+  function shortLabel(w) { return window.LANG === "en" ? WD_EN[w.dow] + " " + w.mo + "/" + w.d : w.mo + "/" + w.d + "(" + WD_JA[w.dow] + ")"; }
+  function clock(min) { return pad(Math.floor(min / 60) % 24) + ":" + pad(min % 60); }
+  function fmtRange(s, e) {
+    var a = wall(s, tz), b = wall(e, tz);
+    var same = a.y === b.y && a.mo === b.mo && a.d === b.d;
+    return dateLabel(a) + " " + clock(a.min) + "–" + (same ? "" : b.mo + "/" + b.d + " ") + clock(b.min);
+  }
+  function fmtDateTime(ms) { var a = wall(ms, tz); return dateLabel(a) + " " + clock(a.min); }
+
+  // ---------- geometry (for the display zone) ----------
+  // days[i] = {i, label, short, dow, phase, cols: [{m, key|null}], groups: [{m, span}], open: [keys in time order]}
+  var days = [], openOrder = [], minOf = {};
+  function layout() {
+    var keys = Object.keys(tl.open).sort(function (a, b) { return tl.at[a] - tl.at[b]; });
+    var byDay = {}, order = [], phases = {};
+    keys.forEach(function (k) {
+      var w = wall(tl.at[k], tz), dk = w.y + "-" + pad(w.mo) + "-" + pad(w.d);
+      if (!byDay[dk]) { byDay[dk] = { w: w, slots: [] }; order.push(dk); }
+      byDay[dk].slots.push({ key: k, m: w.min });
+      phases[w.min % STEP] = (phases[w.min % STEP] || 0) + 1;
+    });
+    // columns start where the slots start: :00/:30 normally, :15/:45 for e.g. Nepal viewing a Tokyo poll
+    var phase = +Object.keys(phases).sort(function (a, b) { return phases[b] - phases[a]; })[0] || 0;
+    var col = function (m) { return phase + Math.floor((m - phase) / STEP) * STEP; };
+    var grp = function (m) { return phase + Math.floor((m - phase) / 60) * 60; };
+    // hours shown (same for every day): hours with a slot plus one hour either side. Hours in between that have no
+    // slot are left out, so a window crossing midnight (13–17 Tokyo seen from New York = 23–03) stays compact;
+    // the first hour after a gap is marked.
+    var shown = {};
+    keys.forEach(function (k) {
+      var g = grp(col(minOf[k] = wall(tl.at[k], tz).min));
+      [g - 60, g, g + 60].forEach(function (x) { if (x >= phase && x < 1440 + phase) shown[x] = true; });
+    });
+    var hours = Object.keys(shown).map(Number).sort(function (a, b) { return a - b; });
+    days = order.map(function (dk, i) {
+      var at = {};
+      byDay[dk].slots.forEach(function (s) { (at[col(s.m)] = at[col(s.m)] || []).push(s.key); });
+      var cols = [], groups = [];
+      hours.forEach(function (g, j) {
+        var n = 0, gap = j > 0 && g !== hours[j - 1] + 60;
+        for (var m = g; m < g + 60; m += STEP) {
+          // two slots on one wall time (the display zone's DST fall-back): both get a column
+          (at[m] || [null]).forEach(function (key) { cols.push({ m: m, key: key, gap: gap && !n }); n++; });
+        }
+        groups.push({ m: g, span: n, gap: gap });
+      });
+      var w = byDay[dk].w;
+      return { i: i, label: dateLabel(w), short: shortLabel(w), dow: w.dow, phase: phase, cols: cols, groups: groups,
+               open: cols.filter(function (c) { return c.key; }).map(function (c) { return c.key; }) };
+    });
+    openOrder = [];
+    days.forEach(function (d) { d.open.forEach(function (k) { openOrder.push(k); }); });
+  }
+  function isHour(c, d) { return (c.m - d.phase) % 60 === 0; }
+  function slotText(k) { return clock(minOf[k]) + "–" + clock(minOf[k] + STEP); }
 
   function el(tag, cls, text) {
     var e = document.createElement(tag);
@@ -66,15 +128,16 @@
           th.appendChild(el("span", "pname", p.name));
         }
         tr.appendChild(th);
-        d.cols.forEach(function (k) {
-          var td = el("td", "tl-cell");
-          if (!tl.open[k]) td.classList.add("off");
+        d.cols.forEach(function (c) {
+          var td = el("td", "tl-cell"), k = c.key;
+          if (!k) td.classList.add("off");
           else {
             var v = p.slots[k];
-            if (v) { td.classList.add("m-" + v); td.textContent = SYM[v]; td.title = hhmm(k) + "– " + LABEL[v]; }
+            if (v) { td.classList.add("m-" + v); td.textContent = SYM[v]; td.title = slotText(k) + " " + LABEL[v]; }
             if (finalized[k]) td.classList.add("fx");
           }
-          if (+k.slice(14, 16) === 0) td.classList.add("hr");
+          if (isHour(c, d)) td.classList.add("hr");
+          if (c.gap) td.classList.add("gap");
           tr.appendChild(td);
         });
         t.appendChild(tr);
@@ -83,9 +146,9 @@
       var cth = el("th", "tl-name tl-countlabel", T("参加できる人数"));
       cth.scope = "row";
       cr.appendChild(cth);
-      d.cols.forEach(function (k) {
-        var td = el("td", "tl-cell");
-        if (!tl.open[k]) td.classList.add("off");
+      d.cols.forEach(function (col) {
+        var td = el("td", "tl-cell"), k = col.key;
+        if (!k) td.classList.add("off");
         else {
           var c = boot.counts[k] || [0, 0, 0];
           if (c[0]) {
@@ -93,10 +156,11 @@
             td.classList.add("has");
             td.style.setProperty("--lv", boot.responded ? (c[0] / boot.responded).toFixed(2) : 0);
           }
-          td.title = hhmm(k) + "–  ○" + c[0] + (boot.allowMaybe ? " △" + c[1] : "") + " ×" + c[2];
+          td.title = slotText(k) + "  ○" + c[0] + (boot.allowMaybe ? " △" + c[1] : "") + " ×" + c[2];
           if (finalized[k]) td.classList.add("fx");
         }
-        if (+k.slice(14, 16) === 0) td.classList.add("hr");
+        if (isHour(col, d)) td.classList.add("hr");
+        if (col.gap) td.classList.add("gap");
         cr.appendChild(td);
       });
       t.appendChild(cr);
@@ -121,12 +185,13 @@
       th.appendChild(b);
     }
     tr.appendChild(th);
-    for (var h = tl.hourStart; h < tl.hourEnd; h++) {
-      var hth = el("th", "tl-hour", pad(h));
-      hth.colSpan = perHour;
+    d.groups.forEach(function (g) {
+      if (!g.span) return;
+      var hth = el("th", "tl-hour" + (g.gap ? " gap" : ""), d.phase ? clock(g.m) : pad(Math.floor(g.m / 60) % 24));
+      hth.colSpan = g.span;
       hth.scope = "col";
       tr.appendChild(hth);
-    }
+    });
     return tr;
   }
 
@@ -149,22 +214,24 @@
     var sym = c.querySelector(".sym");
     if (v) { c.classList.add("m-" + v); sym.textContent = SYM[v]; }
     else sym.textContent = "";
-    c.setAttribute("aria-label", hhmm(k) + "–" + endOf(k) + " " + (v ? LABEL[v] : UNSET));
-    c.title = hhmm(k) + "– " + (v ? LABEL[v] : UNSET);
+    c.setAttribute("aria-label", slotText(k) + " " + (v ? LABEL[v] : UNSET));
+    c.title = slotText(k) + " " + (v ? LABEL[v] : UNSET);
   }
 
-  function makeCell(k, d, idx, vertical) {
+  function makeCell(col, d, idx, vertical) {
     var c = el(vertical ? "div" : "td", "tl-cell" + (vertical ? " v-cell" : ""));
+    var k = col.key;
+    if (col.gap) c.classList.add("gap");
+    if (!k) { c.classList.add("off"); return c; }
     c.dataset.key = k;
-    if (!tl.open[k]) { c.classList.add("off"); return c; }
     c.classList.add("on");
     c.dataset.day = d.i;
     c.dataset.idx = idx;
     c.setAttribute("role", "button");
     c.tabIndex = -1;
-    if (+k.slice(14, 16) === 0) c.classList.add("hr");
+    if (isHour(col, d)) c.classList.add("hr");
     c.appendChild(el("span", "sym"));
-    if (vertical) c.appendChild(el("span", "v-min", ":" + k.slice(14, 16)));
+    if (vertical) c.appendChild(el("span", "v-min", ":" + pad(col.m % 60)));
     cellOf[k] = c;
     return c;
   }
@@ -188,7 +255,7 @@
         t.style.setProperty("--cols", d.cols.length);
         t.appendChild(headRow(d, fillDay));
         var tr = el("tr", "tl-candrow");
-        d.cols.forEach(function (k) { tr.appendChild(makeCell(k, d, idxOf[k], false)); });
+        d.cols.forEach(function (c) { tr.appendChild(makeCell(c, d, idxOf[c.key], false)); });
         t.appendChild(tr);
         grid.appendChild(t);
       } else {
@@ -201,16 +268,17 @@
         head.appendChild(b);
         box.appendChild(head);
         if (!d.open.length) return;
-        var first = +d.open[0].slice(11, 13), last = +d.open[d.open.length - 1].slice(11, 13);
-        for (var h = first; h <= last; h++) {
-          var row = el("div", "v-row");
-          row.appendChild(el("span", "v-time", window.LANG === "en" ? pad(h) + ":00" : h + "時"));
-          for (var j = 0; j < perHour; j++) {
-            var k = slotKey(d.date, h * 60 + j * tl.step);
-            row.appendChild(makeCell(k, d, idxOf[k], true));
-          }
+        // one row per hour group, from the first to the last group with an open slot
+        var used = d.groups.filter(function (g) {
+          return d.cols.some(function (c) { return c.key && c.m >= g.m && c.m < g.m + 60; });
+        });
+        d.groups.forEach(function (g) {
+          if (g.m < used[0].m || g.m > used[used.length - 1].m) return;
+          var row = el("div", "v-row"), h = Math.floor(g.m / 60) % 24;
+          row.appendChild(el("span", "v-time", d.phase ? clock(g.m) : window.LANG === "en" ? pad(h) + ":00" : h + "時"));
+          d.cols.forEach(function (c) { if (c.m >= g.m && c.m < g.m + 60) row.appendChild(makeCell(c, d, idxOf[c.key], true)); });
           box.appendChild(row);
-        }
+        });
         grid.appendChild(box);
       }
     });
@@ -458,6 +526,57 @@
     localStorage.setItem(R, JSON.stringify(list.slice(0, 20)));
   } catch (e) { /* storage unavailable */ }
 
-  renderResults();
+  // ---------- display time zone: switcher, texts, re-layout ----------
+  var zones = [];
+  try { zones = Intl.supportedValuesOf ? Intl.supportedValuesOf("timeZone") : []; } catch (e) { zones = []; }
+  function opt(value, text) { var o = el("option", "", text); o.value = value; return o; }
+  function renderTzBars() {
+    document.querySelectorAll("[data-tz-bar]").forEach(function (bar) {
+      bar.innerHTML = "";
+      var lab = el("label", "");
+      lab.appendChild(el("span", "tz-lbl", T("表示中のタイムゾーン")));
+      var sel = el("select", "tz-sel");
+      sel.setAttribute("data-testid", "tz-select");
+      sel.appendChild(opt("local", T("あなたの時刻（{tz}）", { tz: localTz })));
+      sel.appendChild(opt("poll", T("作成者の時刻（{tz}）", { tz: boot.tz })));
+      if (zones.length) {
+        var og = el("optgroup");
+        og.label = T("ほかのタイムゾーン");
+        zones.forEach(function (z) { og.appendChild(opt(z, z)); });
+        sel.appendChild(og);
+      }
+      if (tzChoice !== "local" && tzChoice !== "poll" && !zones.length) sel.appendChild(opt(tzChoice, tzChoice));
+      sel.value = tzChoice;
+      if (sel.value !== tzChoice) sel.value = "local";
+      sel.addEventListener("change", function () { setTz(sel.value); });
+      lab.appendChild(sel);
+      bar.appendChild(lab);
+      if (tz !== boot.tz) bar.appendChild(el("span", "tz-diff", T("作成者のタイムゾーン（{tz}）から変換して表示しています", { tz: boot.tz })));
+    });
+  }
+  function renderTexts() {
+    document.querySelectorAll("[data-range]").forEach(function (e) {
+      var p = e.getAttribute("data-range").split(",");
+      e.textContent = fmtRange(+p[0], +p[1]);
+    });
+    document.querySelectorAll("[data-ts]").forEach(function (e) { e.textContent = fmtDateTime(+e.getAttribute("data-ts")); });
+    var note = $("tz-note");
+    if (note) note.textContent = T("時刻は {tz}", { tz: tz });
+  }
+  function setTz(choice) {
+    tzChoice = choice;
+    try { localStorage.setItem(TZ_KEY, choice); } catch (e) { /* storage unavailable */ }
+    tz = zoneOf(choice);
+    render();
+  }
+  function render() {
+    layout();
+    renderTzBars();
+    renderTexts();
+    renderResults();
+    if (modal && !modal.classList.contains("hidden")) renderGrid();
+  }
+
+  render();
   checkHash();
 })();

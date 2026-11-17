@@ -6,7 +6,7 @@ import {
   ANSWERS, type PollAggregate,
 } from "../domain/model";
 import { fmtDateTime, fmtRange } from "../domain/views";
-import { fmtDate, shortDate } from "../lib/i18n";
+import { slotKey } from "../lib/time";
 import { STATUS_LABEL_JA, type Meta } from "../og/card";
 import { Layout, jsonScript, type View } from "./layout";
 
@@ -24,15 +24,19 @@ export function PublicPage({ v, agg, links, meta }: { v: View; agg: PollAggregat
       if (tl.open[k]) (counts[k] ??= [0, 0, 0])[ANSWERS.indexOf(val)]++;
     }
   }
+  // Slot keys stay in the poll's time zone (answers are stored that way); `at` gives each slot's absolute start so the
+  // browser can lay the timeline out in the viewer's time zone (static/public.js).
+  const at: Record<string, number> = {};
+  for (const c of activeCandidates(agg)) {
+    for (let ms = c.startAt; ms < c.endAt; ms += tl.step * 60000) at[slotKey(ms, poll.timezone)] ??= ms;
+  }
   const boot = {
     publicId: poll.publicId,
     apiBase: `/api/v1/public/${poll.publicId}`,
     allowMaybe: poll.allowMaybe,
     accepting: status === "open",
-    timeline: {
-      ...tl,
-      days: tl.days.map((d) => ({ date: d.date, dow: d.dow, label: fmtDate(v.lang, { year: d.y, month: d.m, day: d.d, weekday: d.dow }), short: shortDate(v.lang, { month: d.m, day: d.d, weekday: d.dow }) })),
-    },
+    tz: poll.timezone,
+    timeline: { step: tl.step, open: tl.open, at },
     counts,
     responded: responders.length,
     finalized: fin ? candidateSlots(agg, fin) : [],
@@ -53,8 +57,8 @@ export function PublicPage({ v, agg, links, meta }: { v: View; agg: PollAggregat
           {poll.description && <p class="pre">{poll.description}</p>}
           <p class="muted" style="margin:6px 0 0">
             <span class={`chip chip-${status}`} data-testid="public-status">{v.t(STATUS_LABEL_JA[status])}</span>
-            {poll.responseDeadline != null && <>　{v.t("回答期限")}: {fmtDateTime(agg, poll.responseDeadline, v.lang)}</>}
-            　{v.t("時刻は {tz}", { tz: poll.timezone })}
+            {poll.responseDeadline != null && <>　{v.t("回答期限")}: <span data-ts={String(poll.responseDeadline)}>{fmtDateTime(agg, poll.responseDeadline, v.lang)}</span></>}
+            　<span id="tz-note">{v.t("時刻は {tz}", { tz: poll.timezone })}</span>
           </p>
         </div>
         <div class="card pub-cta">
@@ -72,7 +76,7 @@ export function PublicPage({ v, agg, links, meta }: { v: View; agg: PollAggregat
         </div>
       </div>
 
-      {fin && <div class="finalbox" data-testid="public-finalized">{v.t("日程が確定しました:")} <strong>{fmtRange(agg, fin, v.lang)}</strong></div>}
+      {fin && <div class="finalbox" data-testid="public-finalized">{v.t("日程が確定しました:")} <strong data-range={`${fin.startAt},${fin.endAt}`}>{fmtRange(agg, fin, v.lang)}</strong></div>}
 
       <div id="done-box" class="alert alert-ok hidden" role="status" data-testid="response-done">
         <strong id="done-msg">{v.t("予定を登録しました。")}</strong><br />
@@ -105,7 +109,7 @@ export function PublicPage({ v, agg, links, meta }: { v: View; agg: PollAggregat
                 return (
                   <li class={isFin ? "fixed" : ""}>
                     <span class="when">
-                      {fmtRange(agg, c, v.lang)}
+                      <span data-range={`${c.startAt},${c.endAt}`}>{fmtRange(agg, c, v.lang)}</span>
                       {isFin ? <span class="badge-fixed">{v.t("確定")}</span> : res.best_candidate_ids.includes(r.id) ? <span class="badge-best">{v.t("★おすすめ")}</span> : null}
                     </span>
                     <span class="cnt">
@@ -130,6 +134,7 @@ export function PublicPage({ v, agg, links, meta }: { v: View; agg: PollAggregat
             {status === "open" && <>{v.t("まだの方は")}<button type="button" class="btn-linklike" data-open-form>{v.t("あなたの予定を追加する")}</button>{v.t("から都合を入れてください。")}</>}
             {poll.showParticipantNames ? v.t("自分の名前を押すと、入れた予定を直せます（この端末で登録した場合）。") : v.t("回答者名は非公開のため、人数のみ表示しています。")}
           </p>
+          <div class="tz-bar" data-tz-bar></div>
           <div class="legend">
             <span><span class="mk mk-yes">○</span>{v.t("参加/可")}</span>
             {poll.allowMaybe && <span><span class="mk mk-maybe">△</span>{v.t("未定")}</span>}
@@ -174,6 +179,7 @@ export function PublicPage({ v, agg, links, meta }: { v: View; agg: PollAggregat
                 <button id="clear-all" type="button" class="btn-linklike">{v.t("すべて消す")}</button>
               </p>
               <p class="only-narrow hint">{v.t("スマホでは、マスを押しながら滑らせると続けて入れられます。画面を動かすときは、左の時刻の列をなぞってください。")}</p>
+              <div class="tz-bar" data-tz-bar></div>
               <div id="answer-grid" data-testid="answer-grid"></div>
             </div>
             <div class="modal-f">
