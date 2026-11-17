@@ -11,11 +11,12 @@ Cloudflare Workers + D1 で動作します（TypeScript / Hono / Drizzle ORM / Z
 ## 主な機能
 
 - 日程調整の作成（カレンダーとタイムラインで選ぶ／AIが作ったJSONを貼り付け）、回答、集計、確定、CSV出力
+- タイムゾーンをまたいで利用可能: 回答ページは閲覧者のタイムゾーンに変換して表示（作成者の時刻・任意のタイムゾーンにも切り替え可。夏時間や「+5:45」のような時差にも対応）。API・MCP の時刻は UTC オフセット付き
 - 作成モードを管理者が切り替え: **管理者のみ** / **誰でも（ログイン不要）**。ログインなしで作成した人には**管理用URL**（主催者の鍵）を発行
 - 管理者ダッシュボード: 全日程調整の一覧・検索・非公開化・削除、サイト設定、管理者アカウント、APIトークン
 - ログインなしで作成された日程調整の自動削除（保持期間は設定で変更。Cron Trigger で毎日実行）
 - AI向け: `llms.txt`、OpenAPI 3.1、JSON Schema、回答ページの Markdown / JSON 版、MCP サーバー（`/mcp`、管理者向けOAuth は `/mcp/admin`）
-- OGP / Twitter Card の画像を動的生成（satori + resvg、WebAssembly）
+- OGP / Twitter Card の共有画像（既定は共通の静的画像。管理画面で有効にすると日程調整ごとに satori + resvg で生成）
 - 日本語 / English
 
 ## AIからの使い方（要点）
