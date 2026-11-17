@@ -66,14 +66,25 @@ describe("MCP server", () => {
     expect(r.status).toBe(401);
     expect(r.headers.get("WWW-Authenticate")).toContain(`resource_metadata="${ORIGIN}/.well-known/oauth-protected-resource/mcp/admin"`);
     const meta = await (await req("/.well-known/oauth-protected-resource/mcp/admin")).json() as Record<string, unknown>;
-    expect(meta).toMatchObject({ resource: `${ORIGIN}/mcp/admin`, authorization_servers: [ORIGIN] });
-    const as = await req("/.well-known/oauth-authorization-server");
+    expect(meta).toMatchObject({ resource: `${ORIGIN}/mcp/admin`, authorization_servers: [`${ORIGIN}/oauth`] });
+    // RFC 8414 path insertion for the issuer <origin>/oauth
+    const as = await req("/.well-known/oauth-authorization-server/oauth");
     expect(as.status).toBe(200);
     const asm = await as.json() as Record<string, string>;
+    expect(asm.issuer).toBe(`${ORIGIN}/oauth`);
     expect(asm.authorization_endpoint).toBe(`${ORIGIN}/oauth/authorize`);
     expect(asm.token_endpoint).toBe(`${ORIGIN}/oauth/token`);
     const evil = await mcp("tools/list", {}, { Origin: "https://evil.example" });
     expect(evil.status).toBe(403);
+  });
+
+  it("advertises no OAuth for /mcp, so clients that probe for it connect anonymously", async () => {
+    for (const p of [
+      "/.well-known/oauth-protected-resource", "/.well-known/oauth-protected-resource/mcp",
+      "/.well-known/oauth-authorization-server", "/.well-known/oauth-authorization-server/mcp", "/.well-known/openid-configuration",
+    ]) expect((await req(p)).status, p).toBe(404);
+    const r = await mcp("tools/list");
+    expect(r.status).toBe(200);
   });
 
   it("runs the OAuth flow for an administrator", async () => {
@@ -100,6 +111,7 @@ describe("MCP server", () => {
     expect(ok.status).toBe(302);
     const cb = new URL(ok.headers.get("Location")!);
     expect(cb.searchParams.get("state")).toBe("st");
+    expect(cb.searchParams.get("iss")).toBe(`${ORIGIN}/oauth`);
     const tok = await req("/oauth/token", {
       method: "POST",
       body: new URLSearchParams({ grant_type: "authorization_code", code: cb.searchParams.get("code")!, redirect_uri: "http://localhost:9999/cb", client_id: client.client_id, code_verifier: verifier }),

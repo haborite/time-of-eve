@@ -18,7 +18,7 @@ This document: `{{BASE}}/llms.txt` · MCP: `{{BASE}}/mcp` · OpenAPI 3.1: `{{BAS
 
 | Path | When | How |
 |---|---|---|
-| MCP (recommended) | Your client can connect to a remote MCP server (Streamable HTTP) | `{{BASE}}/mcp`. No token needed for participants{{MCP_CREATE}}. Administrators: header `Authorization: Bearer sch_…` or OAuth. |
+| MCP (recommended) | Your client can connect to a remote MCP server (Streamable HTTP) | `{{BASE}}/mcp`. No token needed for participants{{MCP_CREATE}}. Administrators: header `Authorization: Bearer sch_…`, or OAuth at `{{BASE}}/mcp/admin`. |
 | REST API | You can send HTTPS requests | Section 5. |
 | Browser | You can operate a browser | Open `{{BASE}}/new/import`, paste the poll JSON, Validate, tick the confirmation, "作成して公開" (Create and publish). |
 | Manual | Plain chat only | Output the poll JSON in one code block and ask the user to paste it at `{{BASE}}/new/import`. |
@@ -82,7 +82,7 @@ Ranking (`best_candidate_ids`): candidates where every required participant answ
 
 ## 5. REST API (JSON)
 
-Organizer endpoints authenticate with **one** of: header `X-Manage-Token: <token>` (the last path segment of manage_url), or `Authorization: Bearer sch_…` (administrator API token) / OAuth access token.
+Organizer endpoints authenticate with **one** of: header `X-Manage-Token: <token>` (the last path segment of manage_url), or `Authorization: Bearer sch_…` (administrator API token).
 
 | method | path | |
 |---|---|---|

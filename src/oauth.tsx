@@ -9,6 +9,10 @@
  * with PKCE and refresh rotation, dynamic client registration (RFC 7591) and Client ID Metadata Documents; tokens and
  * grants live in KV (OAUTH_KV), hashed. This file adds the consent page (/oauth/authorize) where an administrator
  * signs in and approves, and the token check used for /mcp/admin.
+ *
+ * The issuer is `<origin>/oauth`, so its RFC 8414 metadata lives at /.well-known/oauth-authorization-server/oauth and
+ * nothing OAuth-related sits at the site root. Clients that probe /mcp for OAuth (e.g. Codex CLI on `mcp add`) then
+ * find none and connect anonymously; /mcp/admin points clients at the issuer through its 401 + RFC 9728 metadata.
  */
 import { AuthorizationError, OAuthAuthorizationServer, authorizationErrorRedirect, type AuthRequest } from "@cloudflare/workers-oauth-provider";
 import { Hono, type Context } from "hono";
@@ -25,17 +29,18 @@ import { siteMeta } from "./og/card";
 import { Links } from "./domain/links";
 
 export const ADMIN_MCP_PATH = "/mcp/admin";
+const ISSUER_PATH = "/oauth";
 const SCOPE = "mcp";
 
 const servers = new Map<string, OAuthAuthorizationServer<Env>>();
 
 function authServer(env: Env): OAuthAuthorizationServer<Env> {
-  const iss = origin(env);
-  let s = servers.get(iss);
+  const o = origin(env);
+  let s = servers.get(o);
   if (!s) {
     s = new OAuthAuthorizationServer<Env>({
-      issuer: iss,
-      resources: [`${iss}${ADMIN_MCP_PATH}`],
+      issuer: `${o}${ISSUER_PATH}`,
+      resources: [`${o}${ADMIN_MCP_PATH}`],
       authorizeEndpoint: "/oauth/authorize",
       tokenEndpoint: "/oauth/token",
       clientRegistrationEndpoint: "/oauth/register",
@@ -43,7 +48,7 @@ function authServer(env: Env): OAuthAuthorizationServer<Env> {
       scopesSupported: [SCOPE, "offline_access"],
       accessTokenTTL: 3600,
     });
-    servers.set(iss, s);
+    servers.set(o, s);
   }
   return s;
 }
@@ -167,9 +172,10 @@ function clientIpOf(r: Request) {
 /** Route OAuth endpoints; everything else goes to the app. */
 export async function oauthFetch(request: Request, env: Env, ctx: ExecutionContext, next: (r: Request) => Promise<Response> | Response): Promise<Response> {
   const path = new URL(request.url).pathname;
-  if (path === `/.well-known/oauth-protected-resource${ADMIN_MCP_PATH}` || path === "/.well-known/oauth-protected-resource") {
+  // Only the exact RFC 9728 location for /mcp/admin: a root alias would claim the whole site (incl. /mcp) needs OAuth.
+  if (path === `/.well-known/oauth-protected-resource${ADMIN_MCP_PATH}`) {
     return Response.json({
-      resource: `${origin(env)}${ADMIN_MCP_PATH}`, authorization_servers: [origin(env)], scopes_supported: [SCOPE],
+      resource: `${origin(env)}${ADMIN_MCP_PATH}`, authorization_servers: [`${origin(env)}${ISSUER_PATH}`], scopes_supported: [SCOPE],
       bearer_methods_supported: ["header"], resource_name: "Time of EVE (administrators)",
     }, { headers: { "Access-Control-Allow-Origin": "*", "Cache-Control": "public, max-age=3600" } });
   }
@@ -177,7 +183,7 @@ export async function oauthFetch(request: Request, env: Env, ctx: ExecutionConte
     if (!env.SECRET_KEY) return new Response("SECRET_KEY missing", { status: 500 });
     return consent.fetch(request, env, ctx);
   }
-  if (path.startsWith("/.well-known/oauth-authorization-server") || path === "/oauth/token" || path === "/oauth/register") {
+  if (path === `/.well-known/oauth-authorization-server${ISSUER_PATH}` || path === "/oauth/token" || path === "/oauth/register") {
     return authServer(env).fetch(request, env, ctx);
   }
   return next(request);
