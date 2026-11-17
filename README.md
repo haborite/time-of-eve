@@ -1,4 +1,4 @@
-# time-of-eve
+# Time of EVE
 
 人間にもAIにも使いやすい日程調整ツール。○△× で都合を集め、重なる時間がひと目で分かります。参加者は登録不要。AIエージェントは REST API と MCP で、作成・回答・集計・確定まで完結できます。
 
@@ -110,9 +110,25 @@ npm run db:generate # src/db/schema.ts を変えたら、差分のマイグレ�
    npm run deploy:staging
    npm run admin:create -- admin --env staging
    ```
-4. カスタムドメインは Cloudflare ダッシュボード（Workers → Settings → Domains & Routes）で設定します。アプリはドメイン直下（`/`）で動きます。
+4. カスタムドメインは `wrangler.jsonc` の `routes`（`custom_domain: true`）で指定し、デプロイ時に自動で設定されます（ゾーンが同じアカウントにあること）。アプリはドメイン直下（`/`）で動きます。
 
-Production は `staging` を `production` に読み替えます。
+Production は `staging` を `production` に読み替えます（Turnstile のウィジェットも環境ごとに作り、ドメインを登録します）。
+
+- Cron Trigger（保持期間による自動削除）の登録には、アカウントに workers.dev サブドメインが必要です（Worker 自体は `workers_dev: false` でも）。未作成の場合は、ダッシュボードの Workers & Pages を一度開くと作成されます。その後 `npm run deploy:staging` をやり直すと Cron が登録されます。
+- Staging は `https://staging.time-of-eve.com`、Production は `https://time-of-eve.com`（いずれもカスタムドメイン、`wrangler.jsonc` の `routes`）で公開します。
+
+### CI（GitHub Actions）
+
+`.github/workflows/ci.yml` は、push と PR のたびに型チェック・テスト・バンドル確認を実行します。main への push では、テストが通ったあと staging の D1 にマイグレーションを適用してデプロイします。
+
+リポジトリの Settings → Secrets and variables → Actions に次を登録します（未登録の間、デプロイのジョブは飛ばされます）。
+
+| Secret | 内容 |
+|---|---|
+| `CLOUDFLARE_API_TOKEN` | CI 専用の API トークン。権限: Workers Scripts 編集、D1 編集、Workers KV 編集、Workers Routes 編集（対象ゾーン）、Account Settings 読み取り |
+| `CLOUDFLARE_ACCOUNT_ID` | Cloudflare のアカウント ID |
+
+Production へのデプロイは手動（`npm run db:migrate:production && npm run deploy:production`）です。
 
 **注意**: OGP画像の生成（satori + resvg）は1枚あたり数十〜数百ミリ秒の CPU を使います。無料プランの CPU 上限（10ms）では生成に失敗し、静的な既定画像（`/static/og-default.png`）が使われます。動的な画像を使う場合は Workers Paid プランを推奨します。生成した画像は Cache API にキャッシュします。
 

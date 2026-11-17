@@ -73,7 +73,7 @@ export function Layout(props: {
           <title>{props.title}</title>
           <meta name="description" content={meta.description} />
           <link rel="canonical" href={meta.url} />
-          <meta property="og:site_name" content="time-of-eve" />
+          <meta property="og:site_name" content="Time of EVE" />
           <meta property="og:type" content="website" />
           <meta property="og:title" content={meta.title} />
           <meta property="og:description" content={meta.description} />
@@ -113,7 +113,7 @@ export function Layout(props: {
             <div class="container">
               <a class="logo" href="/">
                 <Logo />
-                time-of-eve
+                Time of EVE
               </a>
               {props.nav !== "none" && <Nav v={v} />}
               <a class="lang-switch" href={switchUrl} hreflang={other} lang={other} data-testid="lang-switch">

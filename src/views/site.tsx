@@ -27,7 +27,7 @@ function SampleTable({ v }: { v: View }) {
 export function HomePage({ v, meta, settings, mcpUrl, llmsUrl }: { v: View; meta: Meta; settings: Settings; mcpUrl: string; llmsUrl: string }) {
   const open = settings.creation_mode === "anyone";
   return (
-    <Layout v={v} title={`time-of-eve｜${v.t("人間にもAIにも使いやすい日程調整ツール")}`} meta={meta} bodyClass="home" indexable scripts={["home.js"]}>
+    <Layout v={v} title={`Time of EVE｜${v.t("人間にもAIにも使いやすい日程調整ツール")}`} meta={meta} bodyClass="home" indexable scripts={["home.js"]}>
       <section class="home-hero">
         <div class="home-hero-text">
           <p class="home-kicker">{v.t("人間にもAIにも使いやすい日程調整ツール")}</p>
@@ -91,10 +91,10 @@ function OperatorLine({ v, s }: { v: View; s: Settings }) {
 
 export function AboutPage({ v, meta, settings }: { v: View; meta: Meta; settings: Settings }) {
   return (
-    <Layout v={v} title={`${v.t("このサイトについて")}｜time-of-eve`} meta={meta} indexable>
+    <Layout v={v} title={`${v.t("このサイトについて")}｜Time of EVE`} meta={meta} indexable>
       <div class="card prose">
         <h1>{v.t("このサイトについて")}</h1>
-        <p>{v.t("time-of-eve は、人間にもAIにも使いやすいことを目指したオープンソースの日程調整ツールです。Cloudflare Workers と D1 の上で動いています。")}</p>
+        <p>{v.t("Time of EVE は、人間にもAIにも使いやすいことを目指したオープンソースの日程調整ツールです。Cloudflare Workers と D1 の上で動いています。")}</p>
         <OperatorLine v={v} s={settings} />
         <h2>{v.t("謝辞")}</h2>
         <p>{v.t("画面の構成や操作感は、2026年10月に終了した日程調整サービス「トントン」（株式会社アマネク）と、その後継の「Nextonton」に強く影響を受けています。本サイトはそれらの運営者とは関係のない非公式のプロジェクトです。")}</p>
@@ -117,7 +117,7 @@ export function TermsPage({ v, meta, settings }: { v: View; meta: Meta; settings
     "本規約は予告なく変更されることがあります。変更後に利用した場合は変更に同意したものとみなします。",
   ];
   return (
-    <Layout v={v} title={`${v.t("利用規約")}｜time-of-eve`} meta={meta} indexable>
+    <Layout v={v} title={`${v.t("利用規約")}｜Time of EVE`} meta={meta} indexable>
       <div class="card prose">
         <h1>{v.t("利用規約")}</h1>
         <ol>{items.map((x) => <li>{v.t(x)}</li>)}</ol>
@@ -137,7 +137,7 @@ export function PrivacyPage({ v, meta, settings }: { v: View; meta: Meta; settin
     ["削除", "主催者は管理用URLから日程調整を削除できます。ログインなしで作成された日程調整は保持期間の経過後に自動で削除されます。"],
   ];
   return (
-    <Layout v={v} title={`${v.t("プライバシーポリシー")}｜time-of-eve`} meta={meta} indexable>
+    <Layout v={v} title={`${v.t("プライバシーポリシー")}｜Time of EVE`} meta={meta} indexable>
       <div class="card prose">
         <h1>{v.t("プライバシーポリシー")}</h1>
         {items.map(([h, b]) => <><h2>{v.t(h)}</h2><p>{v.t(b)}</p></>)}
@@ -150,7 +150,7 @@ export function PrivacyPage({ v, meta, settings }: { v: View; meta: Meta; settin
 
 export function DocsPage({ v, meta, doc, llmsUrl, mcpUrl, open }: { v: View; meta: Meta; doc: string; llmsUrl: string; mcpUrl: string; open: boolean }) {
   return (
-    <Layout v={v} title={`${v.t("AI・API連携")}｜time-of-eve`} meta={meta} indexable scripts={["admin.js"]}>
+    <Layout v={v} title={`${v.t("AI・API連携")}｜Time of EVE`} meta={meta} indexable scripts={["admin.js"]}>
       <div class="card">
         <h1>{v.t("AI・API連携")}</h1>
         <p>{v.t("ChatGPT・ClaudeなどのAIに、日程調整の作成・回答・確定までを任せるための説明です。")}</p>
@@ -172,7 +172,7 @@ export function DocsPage({ v, meta, doc, llmsUrl, mcpUrl, open }: { v: View; met
 
 export function ErrorPage({ v, meta, status, message, code }: { v: View; meta: Meta; status: number; message: string; code: string }) {
   return (
-    <Layout v={v} title={`${v.t("エラー")}｜time-of-eve`} meta={meta}>
+    <Layout v={v} title={`${v.t("エラー")}｜Time of EVE`} meta={meta}>
       <div class="card hero">
         <h1>{message}</h1>
         <p class="muted">{v.t("エラーコード")}: <code>{code}</code> ({status})</p>
@@ -186,11 +186,11 @@ export function OAuthConsentPage({ v, meta, clientName, redirectHost, username, 
   v: View; meta: Meta; clientName: string; redirectHost: string; username: string | null; csrf: string; state: string; scopes: string[]; error?: string | null;
 }) {
   return (
-    <Layout v={v} title={`${v.t("アクセスの許可")}｜time-of-eve`} meta={meta} nav="none">
+    <Layout v={v} title={`${v.t("アクセスの許可")}｜Time of EVE`} meta={meta} nav="none">
       <div class="card" style="max-width:520px;margin:24px auto">
         <h2>{v.t("アクセスの許可")}</h2>
         {error && <Alert kind="err">{error}</Alert>}
-        <p>{raw("")}<b>{clientName}</b> {v.t("（{host}）が、管理者として time-of-eve を操作する許可を求めています。", { host: redirectHost })}</p>
+        <p>{raw("")}<b>{clientName}</b> {v.t("（{host}）が、管理者として Time of EVE を操作する許可を求めています。", { host: redirectHost })}</p>
         <ul class="muted">{scopes.map((s) => <li>{s}</li>)}</ul>
         <form method="post" action="/oauth/authorize">
           <input type="hidden" name="state" value={state} />

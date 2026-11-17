@@ -59,7 +59,7 @@ api.get("/", (c) => {
   const l = c.get("links");
   const s = c.get("settings");
   return c.json({
-    name: "time-of-eve",
+    name: "Time of EVE",
     description: "Scheduling polls for humans and AI agents",
     creation: s.creation_mode === "anyone" ? "anyone (no account needed; rate limited)" : "administrators only (API token)",
     authenticated_as: c.get("bearerUser")?.username ?? null,

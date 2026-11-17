@@ -46,7 +46,7 @@ export function PublicPage({ v, agg, links, meta }: { v: View; agg: PollAggregat
   const u = links.agentUrls(poll);
   const anyRequiredMiss = res.candidates.some((c) => c.all_required_yes === false);
   return (
-    <Layout v={v} title={`${poll.title}｜time-of-eve`} meta={meta} bodyClass="pub" agentUrls={u} scripts={["public.js"]}>
+    <Layout v={v} title={`${poll.title}｜Time of EVE`} meta={meta} bodyClass="pub" agentUrls={u} scripts={["public.js"]}>
       <div class="pub-top">
         <div class="card pub-title">
           <h1 class="ttl">{poll.title}</h1>

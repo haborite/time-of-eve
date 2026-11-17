@@ -170,7 +170,7 @@ export async function oauthFetch(request: Request, env: Env, ctx: ExecutionConte
   if (path === `/.well-known/oauth-protected-resource${ADMIN_MCP_PATH}` || path === "/.well-known/oauth-protected-resource") {
     return Response.json({
       resource: `${origin(env)}${ADMIN_MCP_PATH}`, authorization_servers: [origin(env)], scopes_supported: [SCOPE],
-      bearer_methods_supported: ["header"], resource_name: "time-of-eve (administrators)",
+      bearer_methods_supported: ["header"], resource_name: "Time of EVE (administrators)",
     }, { headers: { "Access-Control-Allow-Origin": "*", "Cache-Control": "public, max-age=3600" } });
   }
   if (path === "/oauth/authorize") {

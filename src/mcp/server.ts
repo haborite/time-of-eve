@@ -83,7 +83,7 @@ export function instructions(m: McpContext): string {
   const base = ctx.links.url();
   const create = uc.canCreate(ctx);
   const s = [
-    `time-of-eve: scheduling polls (日程調整) at ${base}. The server validates, counts and ranks; never tally answers yourself.`,
+    `Time of EVE: scheduling polls (日程調整) at ${base}. The server validates, counts and ranks; never tally answers yourself.`,
     "",
     "PARTICIPANT (no token): when someone gives you a poll link (…/p/<id>) and asks you to answer for them: get_public_poll → work out their availability for each candidate id (ask them, or read their calendar with permission; never guess) → submit_response with their own name (or participant_id if they are in preregistered_pending) → give them the returned edit_url privately. Later: update_my_response with that edit_url.",
     "",
@@ -105,7 +105,7 @@ export function instructions(m: McpContext): string {
 export function buildServer(m: McpContext): McpServer {
   const { ctx, lang } = m;
   const server = new McpServer(
-    { name: "time-of-eve", title: "time-of-eve — scheduling polls for humans and AI", version: "1.0.0" },
+    { name: "time-of-eve", title: "Time of EVE — scheduling polls for humans and AI", version: "1.0.0" },
     { instructions: instructions(m), jsonSchemaValidator: new CfWorkerJsonSchemaValidator(), capabilities: { tools: {}, resources: {}, prompts: {} } },
   );
   const run = async (fn: () => Promise<Record<string, unknown>>): Promise<ToolResult> => {
@@ -323,7 +323,7 @@ export function buildServer(m: McpContext): McpServer {
       description: "Plan candidates with the user and create a poll",
       argsSchema: { request: z.string().describe("What to schedule (who, how long, when)") },
     }, ({ request }) => ({
-      messages: [{ role: "user", content: { type: "text", text: `Create a scheduling poll with time-of-eve for: ${request}\n\nConfirm missing details (length, time zone, date range, participants) with me first. Use candidate_ranges for time windows, dry_run first, then create_poll with publish=true after I agree. Give me public_url and manage_url.` } }],
+      messages: [{ role: "user", content: { type: "text", text: `Create a scheduling poll with Time of EVE for: ${request}\n\nConfirm missing details (length, time zone, date range, participants) with me first. Use candidate_ranges for time windows, dry_run first, then create_poll with publish=true after I agree. Give me public_url and manage_url.` } }],
     }));
   }
   server.registerPrompt("answer_poll", {

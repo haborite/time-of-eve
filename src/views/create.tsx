@@ -13,7 +13,7 @@ const COMMON_TZ = ["Asia/Tokyo", "Asia/Seoul", "Asia/Shanghai", "Asia/Singapore"
 export function NewPage({ v, meta, maxCandidates, defaultTz, durLabel }: { v: View; meta: Meta; maxCandidates: number; defaultTz: string; durLabel: (m: number) => string }) {
   const tzs = COMMON_TZ.includes(defaultTz) ? COMMON_TZ : [defaultTz, ...COMMON_TZ];
   return (
-    <Layout v={v} title={`${v.t("日程をえらぶ")}｜time-of-eve`} meta={meta} bodyClass="newp" scripts={["new.js"]}>
+    <Layout v={v} title={`${v.t("日程をえらぶ")}｜Time of EVE`} meta={meta} bodyClass="newp" scripts={["new.js"]}>
       <div class="page-head">
         <h1 class="page-ttl">{v.t("日程をえらぶ")}</h1>
         <p>{v.t("3つのステップで候補日時をつくります。最後に確認画面で内容を確かめてから作成・公開します。")}</p>
@@ -130,7 +130,7 @@ export function ConfirmPage(props: {
   const { v, result } = props;
   const errs = result?.errors ?? [];
   return (
-    <Layout v={v} title={`${v.t("JSON取込")}｜time-of-eve`} meta={props.meta} scripts={["admin.js"]}>
+    <Layout v={v} title={`${v.t("JSON取込")}｜Time of EVE`} meta={props.meta} scripts={["admin.js"]}>
       <div class="card">
         <h2>{props.fromNew ? v.t("内容の確認") : v.t("JSONを貼り付けて作成")}</h2>
         {props.fromNew ? (

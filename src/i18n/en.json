@@ -35,7 +35,7 @@
  "URLを開いて、名前と都合を入れるだけ。あとから自分の予定を直すこともできます。": "Open the URL and enter your name and availability. You can change your answer later.",
  "UTCオフセット付きISO 8601": "ISO 8601 with UTC offset",
  "schema_version 1.0 のJSONを貼り付けて「検証」→ プレビューを確認 →「下書き作成」または「作成して公開」。.json ファイルのドラッグ＆ドロップも可。": "Paste schema_version 1.0 JSON, press “Validate”, check the preview, then “Create draft” or “Create and publish”. You can also drop a .json file.",
- "time-of-eve は、人間にもAIにも使いやすいことを目指したオープンソースの日程調整ツールです。Cloudflare Workers と D1 の上で動いています。": "time-of-eve is an open-source scheduling tool designed to be easy for both humans and AI. It runs on Cloudflare Workers and D1.",
+ "Time of EVE は、人間にもAIにも使いやすいことを目指したオープンソースの日程調整ツールです。Cloudflare Workers と D1 の上で動いています。": "Time of EVE is an open-source scheduling tool designed to be easy for both humans and AI. It runs on Cloudflare Workers and D1.",
  "{name} さんの予定を直しています": "Editing {name}'s entry",
  "{name} さんの新しい編集リンク（この画面でのみ表示）:": "New edit link for {name} (shown only on this screen):",
  "{name} さんの編集リンクを再発行しました（旧リンクは無効）": "Reissued the edit link for {name} (the old link no longer works)",
@@ -434,6 +434,6 @@
  "非公開にしました": "Hidden",
  "非公開にする（管理者）": "Hide (administrator)",
  "非公開（集計のみ表示）": "Hidden (totals only)",
- "（{host}）が、管理者として time-of-eve を操作する許可を求めています。": "({host}) is asking for permission to use time-of-eve as an administrator.",
+ "（{host}）が、管理者として Time of EVE を操作する許可を求めています。": "({host}) is asking for permission to use Time of EVE as an administrator.",
  "（未設定）": "(not set)"
 }

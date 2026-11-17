@@ -1,4 +1,4 @@
-# time-of-eve — guide for AI agents
+# Time of EVE — guide for AI agents
 
 > Scheduling polls (日程調整) that are easy for both humans and AI agents. An organizer proposes candidate time slots; participants mark ○ yes / △ maybe / × no; the server counts, ranks and records the final date. **The server does all counting and ranking — never tally answers yourself.**
 

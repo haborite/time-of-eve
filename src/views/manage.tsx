@@ -63,7 +63,7 @@ export function ManagePage(props: ManageProps) {
   const fin = finNo != null ? findCandidate(agg, cKey(finNo)) : undefined;
 
   return (
-    <Layout v={v} title={`${poll.title}｜time-of-eve`} meta={props.meta} scripts={["admin.js"]}>
+    <Layout v={v} title={`${poll.title}｜Time of EVE`} meta={props.meta} scripts={["admin.js"]}>
       {props.flash && <Alert kind="ok" testid="flash">{props.flash}</Alert>}
       {props.error && <Alert kind="err" testid="action-error">{props.error}</Alert>}
       {props.reissued && (

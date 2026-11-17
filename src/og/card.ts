@@ -10,7 +10,7 @@ import type { Links } from "../domain/links";
 import { activeCandidates, effectiveStatus, finalizedCandidate, type PollAggregate } from "../domain/model";
 import { fmtDateTime, fmtRange } from "../domain/views";
 
-export const SITE_NAME = "time-of-eve";
+export const SITE_NAME = "Time of EVE";
 export const SITE_DESC_JA = "人間にもAIにも使いやすい日程調整ツール。候補を選んでURLを送るだけ。回答はログイン不要、AIエージェントはAPIとMCPで作成から回答まで完結できます。";
 
 export interface Card {

@@ -29,7 +29,7 @@ function schema(s: z.ZodType) {
 export function pollJsonSchema() {
   return {
     $schema: "https://json-schema.org/draft/2020-12/schema",
-    title: "time-of-eve poll",
+    title: "Time of EVE poll",
     description: "Body of POST /api/v1/polls and arguments of the MCP tool create_poll. Times: local \"YYYY-MM-DDTHH:MM\" in `timezone` (or ISO 8601 with the correct offset).",
     ...schema(PollInput.extend({ publish: z.boolean().optional(), dry_run: z.boolean().optional() })),
     required: ["title"],
@@ -48,7 +48,7 @@ export function openApi(base: string) {
   return {
     openapi: "3.1.0",
     info: {
-      title: "time-of-eve API", version: "1.0.0",
+      title: "Time of EVE API", version: "1.0.0",
       description: `Scheduling polls for humans and AI agents. Guide: ${base}/llms.txt. Organizer endpoints: X-Manage-Token (from manage_url) or administrator bearer token. Participant endpoints need no auth.`,
     },
     servers: [{ url: `${base}/api/v1` }],

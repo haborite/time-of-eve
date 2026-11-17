@@ -8,7 +8,7 @@ import { Alert, CopyBox, Layout, type View } from "./layout";
 
 export function LoginPage({ v, meta, next, error }: { v: View; meta: Meta; next: string; error?: string | null }) {
   return (
-    <Layout v={v} title={`${v.t("ログイン")}｜time-of-eve`} meta={meta}>
+    <Layout v={v} title={`${v.t("ログイン")}｜Time of EVE`} meta={meta}>
       <div class="card" style="max-width:420px;margin:24px auto">
         <h2>{v.t("管理者ログイン")}</h2>
         {error && <Alert kind="err" testid="login-error">{error}</Alert>}
@@ -37,7 +37,7 @@ export function DashboardPage({ v, meta, polls, filter, q, page, hasNext, flash 
   const tabs: [string, string][] = [["mine", v.t("自分が作成")], ["all", v.t("すべて")], ["anonymous", v.t("ログインなしで作成")]];
   const qs = (o: Record<string, string | number>) => "?" + new URLSearchParams(Object.entries({ filter, q, ...o }).map(([k, x]) => [k, String(x)])).toString();
   return (
-    <Layout v={v} title={`${v.t("一覧")}｜time-of-eve`} meta={meta} scripts={["admin.js"]}>
+    <Layout v={v} title={`${v.t("一覧")}｜Time of EVE`} meta={meta} scripts={["admin.js"]}>
       {flash && <Alert kind="ok" testid="flash">{flash}</Alert>}
       <div class="card">
         <div class="row">
@@ -89,7 +89,7 @@ export function SettingsPage({ v, meta, settings, flash, error, users, me }: {
 }) {
   const csrf = v.admin!.csrf;
   return (
-    <Layout v={v} title={`${v.t("設定")}｜time-of-eve`} meta={meta} scripts={["admin.js"]}>
+    <Layout v={v} title={`${v.t("設定")}｜Time of EVE`} meta={meta} scripts={["admin.js"]}>
       {flash && <Alert kind="ok" testid="flash">{flash}</Alert>}
       {error && <Alert kind="err" testid="settings-error">{error}</Alert>}
       <div class="card">
@@ -169,7 +169,7 @@ export function TokensPage({ v, meta, tokens, newToken, mcpUrl }: {
   const csrf = v.admin!.csrf;
   const ts = (ms: number | null) => (ms == null ? "—" : new Date(ms).toISOString().slice(0, 16).replace("T", " "));
   return (
-    <Layout v={v} title={`${v.t("APIトークン")}｜time-of-eve`} meta={meta} scripts={["admin.js"]}>
+    <Layout v={v} title={`${v.t("APIトークン")}｜Time of EVE`} meta={meta} scripts={["admin.js"]}>
       <div class="card">
         <h2>{v.t("APIトークン")}</h2>
         <p class="muted">{v.t("REST API・MCPで管理者として操作するときに Authorization: Bearer <token> を付けます。トークンは作成時に一度だけ表示されます。AIとの会話本文には貼らず、ツールの認証設定に入れてください。")}</p>

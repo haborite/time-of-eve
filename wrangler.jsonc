@@ -37,15 +37,17 @@
   "env": {
     "staging": {
       "name": "time-of-eve-staging",
+      "routes": [{ "pattern": "staging.time-of-eve.com", "custom_domain": true }],
+      "workers_dev": false,
       "vars": {
-        "PUBLIC_ORIGIN": "https://staging.example.com",
+        "PUBLIC_ORIGIN": "https://staging.time-of-eve.com",
         "ENVIRONMENT": "staging",
-        "TURNSTILE_SITE_KEY": "REPLACE_WITH_TURNSTILE_SITE_KEY"
+        "TURNSTILE_SITE_KEY": "0x4AAAAAAGDrJ3euINlPB_tv"
       },
       "d1_databases": [
-        { "binding": "DB", "database_name": "time-of-eve-staging", "database_id": "REPLACE_WITH_STAGING_D1_ID", "migrations_dir": "migrations" }
+        { "binding": "DB", "database_name": "time-of-eve-staging", "database_id": "15e5e5ac-bec6-4fc8-bcfb-4503a0d07e8e", "migrations_dir": "migrations" }
       ],
-      "kv_namespaces": [{ "binding": "OAUTH_KV", "id": "REPLACE_WITH_STAGING_KV_ID" }],
+      "kv_namespaces": [{ "binding": "OAUTH_KV", "id": "6d0ff33fe41343e6b6c48401e04a9bfb" }],
       "ratelimits": [
         { "name": "RL_WRITE", "namespace_id": "2001", "simple": { "limit": 30, "period": 60 } },
         { "name": "RL_CREATE", "namespace_id": "2002", "simple": { "limit": 10, "period": 60 } },
@@ -54,8 +56,10 @@
     },
     "production": {
       "name": "time-of-eve",
+      "routes": [{ "pattern": "time-of-eve.com", "custom_domain": true }],
+      "workers_dev": false,
       "vars": {
-        "PUBLIC_ORIGIN": "https://time-of-eve.example.com",
+        "PUBLIC_ORIGIN": "https://time-of-eve.com",
         "ENVIRONMENT": "production",
         "TURNSTILE_SITE_KEY": "REPLACE_WITH_TURNSTILE_SITE_KEY"
       },
