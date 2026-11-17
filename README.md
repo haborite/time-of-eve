@@ -3,7 +3,8 @@
 人間にもAIにも使いやすい日程調整ツール。○△× で都合を集め、重なる時間がひと目で分かります。参加者は登録不要。AIエージェントは REST API と MCP で、作成・回答・集計・確定まで完結できます。
 
 Cloudflare Workers + D1 で動作します（TypeScript / Hono / Drizzle ORM / Zod）。
-Python 版 [hostonton](https://github.com/haborite/hostonton) を参考に再設計したものです。画面構成と操作感は、2026年10月に終了した「トントン」とその後継の「Nextonton」に強く影響を受けています（いずれの運営者とも無関係の非公式プロジェクトです）。
+
+![回答ページの例：複数の参加者が○△×で予定を登録した状態](docs/images/screenshot.png)
 
 ## 主な機能
 
@@ -137,3 +138,7 @@ Production へのデプロイは手動（`npm run db:migrate:production && npm r
 ## ライセンス
 
 [MIT](LICENSE)
+
+## 謝辞
+
+画面構成と操作感は、2026年10月に終了した「トントン」とその後継の「Nextonton」に強く影響を受けています（いずれの運営者とも無関係の非公式プロジェクトです）。
