@@ -61,12 +61,12 @@
       "vars": {
         "PUBLIC_ORIGIN": "https://time-of-eve.com",
         "ENVIRONMENT": "production",
-        "TURNSTILE_SITE_KEY": "REPLACE_WITH_TURNSTILE_SITE_KEY"
+        "TURNSTILE_SITE_KEY": "0x4AAAAAAGFD29-NwI5Q5xrj"
       },
       "d1_databases": [
-        { "binding": "DB", "database_name": "time-of-eve-production", "database_id": "REPLACE_WITH_PRODUCTION_D1_ID", "migrations_dir": "migrations" }
+        { "binding": "DB", "database_name": "time-of-eve-production", "database_id": "3c94f0d6-61d8-40fa-b878-521decb140c5", "migrations_dir": "migrations" }
       ],
-      "kv_namespaces": [{ "binding": "OAUTH_KV", "id": "REPLACE_WITH_PRODUCTION_KV_ID" }],
+      "kv_namespaces": [{ "binding": "OAUTH_KV", "id": "30d3676d91114b4ca6391e34657279ae" }],
       "ratelimits": [
         { "name": "RL_WRITE", "namespace_id": "3001", "simple": { "limit": 30, "period": 60 } },
         { "name": "RL_CREATE", "namespace_id": "3002", "simple": { "limit": 10, "period": 60 } },
