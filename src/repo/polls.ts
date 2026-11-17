@@ -72,10 +72,10 @@ export function findByIdempotencyKey(d: DB, ownerScope: string, clientRequestId:
   return loadWhere(d, and(eq(s.polls.ownerScope, ownerScope), eq(s.polls.clientRequestId, clientRequestId))!);
 }
 
-/** Public lookup: drafts and hidden polls do not exist for participants. */
+/** Public lookup: hidden polls do not exist for participants. */
 export async function loadPublic(d: DB, publicId: string): Promise<PollAggregate> {
   const agg = await loadByPublicId(d, publicId);
-  if (!agg || agg.poll.status === "draft" || agg.poll.hidden) throw new AppError("poll_not_found", 404);
+  if (!agg || agg.poll.hidden) throw new AppError("poll_not_found", 404);
   return agg;
 }
 

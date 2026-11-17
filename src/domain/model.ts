@@ -4,7 +4,8 @@
  */
 import { slotKey, toLocal, ymd } from "../lib/time";
 
-export const STATUSES = ["draft", "open", "closed", "finalized", "cancelled"] as const;
+// "draft" no longer exists (polls open on creation); the database column still allows it for old rows.
+export const STATUSES = ["open", "closed", "finalized", "cancelled"] as const;
 export type Status = (typeof STATUSES)[number];
 export const ANSWERS = ["yes", "maybe", "no"] as const;
 export type Answer = (typeof ANSWERS)[number];

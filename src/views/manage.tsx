@@ -95,18 +95,13 @@ export function ManagePage(props: ManageProps) {
           <dt>{v.t("回答")}</dt>
           <dd>{v.t("{n} 名", { n: res.responded })}{res.expected != null && <> / {v.t("予定 {n} 名（未回答 {m} 名）", { n: res.expected, m: res.pending ?? 0 })}</>}</dd>
         </dl>
-        {poll.status !== "draft" ? (
-          <>
-            <h3>{v.t("公開URL（回答者に送るURL）")}</h3>
-            <div class="urlbox">
-              <input type="text" readonly value={props.publicUrl} id="public-url" data-testid="public-url" aria-label={v.t("公開URL")} />
-              <button class="btn btn-primary" type="button" data-copy="#public-url" data-testid="copy-public-url">{v.t("URLをコピー")}</button>
-            </div>
-            <p class="muted" style="margin:4px 0 0"><a href={props.publicUrl} target="_blank" rel="noopener">{v.t("回答ページを開く")} ↗</a></p>
-          </>
-        ) : <Alert kind="info">{v.t("下書きです。公開すると回答用URLが発行されます。")}</Alert>}
+        <h3>{v.t("公開URL（回答者に送るURL）")}</h3>
+        <div class="urlbox">
+          <input type="text" readonly value={props.publicUrl} id="public-url" data-testid="public-url" aria-label={v.t("公開URL")} />
+          <button class="btn btn-primary" type="button" data-copy="#public-url" data-testid="copy-public-url">{v.t("URLをコピー")}</button>
+        </div>
+        <p class="muted" style="margin:4px 0 0"><a href={props.publicUrl} target="_blank" rel="noopener">{v.t("回答ページを開く")} ↗</a></p>
         <div class="row" style="margin-top:14px">
-          {poll.status === "draft" && <Act name="publish" label={v.t("公開する")} cls="btn-primary btn-lg" confirm={v.t("この内容で公開します。よろしいですか？")} />}
           {status === "open" && <Act name="close" label={v.t("回答を締め切る")} confirm={v.t("回答受付を終了しますか？")} />}
           {status === "closed" && <Act name="reopen" label={v.t("回答受付を再開")} confirm={v.t("回答受付を再開しますか？（過去の期限は解除されます）")} />}
           {poll.status === "finalized" && <Act name="unfinalize" label={v.t("確定を取り消す")} confirm={v.t("確定を取り消して締切状態に戻しますか？")} />}

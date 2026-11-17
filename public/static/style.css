@@ -316,7 +316,8 @@ body.modal-open { overflow: hidden; }
 .intro { margin: 0 0 4px; font-size: 14px; }
 .frow { display: flex; gap: 12px; align-items: center; padding: 6px 0; border-bottom: 1px dotted #ddd; }
 .flabel { flex: 0 0 120px; font-size: 14px; }
-.ffield { flex: 1 1 auto; }
+.ffield { flex: 1 1 auto; min-width: 0; }
+.ffield select { max-width: 100%; }
 .howto { margin: 10px 0 2px; font-size: 14px; }
 .sticky-marks { position: sticky; top: -12px; background: #fff; z-index: 5; padding: 6px 0; border-bottom: 1px solid #ddd; margin-bottom: 6px; }
 .mark-pick { display: flex; gap: 8px; flex-wrap: wrap; }

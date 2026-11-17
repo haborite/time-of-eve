@@ -10,7 +10,9 @@ import { Alert, Layout, type View } from "./layout";
 const DURATIONS = [15, 30, 45, 60, 90, 120, 150, 180, 240];
 const COMMON_TZ = ["Asia/Tokyo", "Asia/Seoul", "Asia/Shanghai", "Asia/Singapore", "Asia/Kolkata", "Europe/London", "Europe/Paris", "Europe/Berlin", "America/New_York", "America/Chicago", "America/Denver", "America/Los_Angeles", "Australia/Sydney", "Pacific/Auckland", "UTC"];
 
-export function NewPage({ v, meta, maxCandidates, defaultTz, durLabel }: { v: View; meta: Meta; maxCandidates: number; defaultTz: string; durLabel: (m: number) => string }) {
+export function NewPage({ v, meta, maxCandidates, defaultTz, durLabel, turnstileSiteKey }: {
+  v: View; meta: Meta; maxCandidates: number; defaultTz: string; durLabel: (m: number) => string; turnstileSiteKey?: string | null;
+}) {
   const tzs = COMMON_TZ.includes(defaultTz) ? COMMON_TZ : [defaultTz, ...COMMON_TZ];
   return (
     <Layout v={v} title={`${v.t("日程をえらぶ")}｜Time of EVE`} meta={meta} bodyClass="newp" scripts={["new.js"]}>
@@ -28,7 +30,7 @@ export function NewPage({ v, meta, maxCandidates, defaultTz, durLabel }: { v: Vi
               <div class="ffield"><select id="duration" class="w-auto" data-testid="new-duration">
                 {DURATIONS.map((m) => <option value={String(m)} selected={m === 60}>{durLabel(m)}</option>)}
               </select>
-                <span class="fhint">{v.t("1つの候補の長さです。STEP 3 で選んだ時間帯をこの長さで区切って候補にします。")}</span></div></div>
+                <span class="fhint">{v.t("1つの候補の長さです。STEP 3 で選んだ時間帯から、この長さの候補を30分ごとの開始時刻で作ります。")}</span></div></div>
             <div class="frow"><label for="desc" class="flabel">{v.t("補足・備考")}</label>
               <div class="ffield"><textarea id="desc" rows={3} maxlength={2000} placeholder={v.t("開催形式・場所など")}></textarea></div></div>
             <div class="frow"><span class="flabel">{v.t("利用マーク")}</span>
@@ -48,11 +50,11 @@ export function NewPage({ v, meta, maxCandidates, defaultTz, durLabel }: { v: Vi
               <div class="frow"><span class="flabel">{v.t("回答者名")}</span>
                 <div class="ffield"><label><input type="checkbox" id="show-names" checked /> {v.t("回答者名を回答ページに表示する")}</label></div></div>
               <div class="frow"><label for="split" class="flabel">{v.t("候補の区切り方")}</label>
-                <div class="ffield"><select id="split" class="w-auto">
-                  <option value="fit" selected>{v.t("予定時間ごとに区切る（重ならない）")}</option>
-                  <option value="slide">{v.t("30分ずつずらす（重なりあり）")}</option>
-                  <option value="block">{v.t("区切らない（選んだ時間帯をそのまま1候補）")}</option>
-                </select></div></div>
+                <div class="ffield"><select id="split" class="w-auto" data-testid="new-split">
+                  <option value="slide" selected>{v.t("30分ごとに区切る")}</option>
+                  <option value="block">{v.t("区切らない")}</option>
+                </select>
+                  <span class="fhint">{v.t("30分ごと: 選んだ時間帯の中で、予定時間の長さの候補を開始時刻を30分ずつずらして作ります（例: 60分なら 13:00〜14:00、13:30〜14:30…）。区切らない: 選んだ時間帯をそのまま1つの候補にします（予定時間は使いません）。")}</span></div></div>
               <div class="frow"><label for="tz" class="flabel">{v.t("タイムゾーン")}</label>
                 <div class="ffield"><select id="tz" class="w-auto" data-default={defaultTz}>
                   {tzs.map((z) => <option value={z} selected={z === defaultTz}>{z}</option>)}
@@ -100,11 +102,18 @@ export function NewPage({ v, meta, maxCandidates, defaultTz, durLabel }: { v: Vi
           </details>
           <form method="post" action="/new/confirm" id="new-form" data-max={String(maxCandidates)}>
             {v.admin && <input type="hidden" name="csrf" value={v.admin.csrf} />}
-            <input type="hidden" name="action" value="validate" />
+            <input type="hidden" name="action" value="create" />
             <input type="hidden" name="from_new" value="1" />
             <input type="hidden" name="json_text" id="json-out" />
+            {turnstileSiteKey && (
+              // bot check for visitors without login; shown only when Turnstile needs an interaction
+              <>
+                <div class="cf-turnstile" data-sitekey={turnstileSiteKey} data-language={v.lang} data-appearance="interaction-only"></div>
+                <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+              </>
+            )}
             <a class="btn" href={v.admin ? "/admin" : "/"}>{v.t("戻る")}</a>
-            <button class="btn-cta btn-cta-sm" data-testid="new-submit"><span class="arrow" aria-hidden="true">➜</span><span>{v.t("確認画面へ")}</span></button>
+            <button class="btn-cta btn-cta-sm" data-testid="new-submit"><span class="arrow" aria-hidden="true">➜</span><span>{v.t("作成して公開")}</span></button>
           </form>
         </div>
         <div id="new-error" class="alert alert-err hidden" role="alert"></div>
@@ -132,9 +141,9 @@ export function ConfirmPage(props: {
   return (
     <Layout v={v} title={`${v.t("JSON取込")}｜Time of EVE`} meta={props.meta} scripts={["admin.js"]}>
       <div class="card">
-        <h2>{props.fromNew ? v.t("内容の確認") : v.t("JSONを貼り付けて作成")}</h2>
+        <h2>{props.fromNew ? v.t("作成できませんでした") : v.t("JSONを貼り付けて作成")}</h2>
         {props.fromNew ? (
-          <p class="muted">{v.t("「日程をえらぶ」で作った内容です。プレビューを確認して「作成して公開」を押してください。")}{" "}
+          <p class="muted">{v.t("「日程をえらぶ」で作った内容を作成できませんでした。下の内容を確認して、もう一度「作成して公開」を押すか、日程の選択に戻ってください。")}{" "}
             <a href="/new#restore" data-testid="back-to-new">{v.t("← 日程の選択に戻る")}</a></p>
         ) : (
           <p class="muted">{v.t("AIが作ったJSONを貼り付けて「検証」→ プレビューを確認 →「作成して公開」。.json ファイルのドラッグ＆ドロップも可。書式は「AI・API連携」のページを参照してください。")}</p>
@@ -183,8 +192,6 @@ export function ConfirmPage(props: {
                   <tr><td class="muted">{i + 1}</td><td class="dt"><span class="d">{c.start.slice(0, 10)}</span> <span class="t">{c.start.slice(11, 16)}–{c.end.slice(0, 10) === c.start.slice(0, 10) ? c.end.slice(11, 16) : c.end.slice(0, 16).replace("T", " ")}</span></td></tr>
                 ))}
               </tbody></table></div>
-              <div class="spacer"></div>
-              <label class="row" style="font-weight:700"><input type="checkbox" name="confirm_publish" value="1" data-testid="confirm-publish" /> {v.t("内容を確認しました（公開時に必須）")}</label>
               {props.turnstileSiteKey && (
                 <>
                   <div class="spacer"></div>
@@ -196,12 +203,7 @@ export function ConfirmPage(props: {
           )}
           <div class="row">
             <button class="btn btn-blue btn-lg" name="action" value="validate" data-testid="validate-btn">{v.t("検証")}</button>
-            {result?.valid && (
-              <>
-                <button class="btn btn-lg" name="action" value="create" data-testid="create-draft-btn">{v.t("下書き作成")}</button>
-                <button class="btn btn-primary btn-lg" name="action" value="publish" data-testid="publish-btn">{v.t("作成して公開")}</button>
-              </>
-            )}
+            {result?.valid && <button class="btn btn-primary btn-lg" name="action" value="create" data-testid="publish-btn">{v.t("作成して公開")}</button>}
             <span class="grow"></span>
             {!props.fromNew && <button class="btn btn-sm" type="button" id="fill-sample">{v.t("サンプルを入れる")}</button>}
           </div>

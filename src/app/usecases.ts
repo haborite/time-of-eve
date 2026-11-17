@@ -66,8 +66,8 @@ export interface CreateResult {
   warnings: ReturnType<typeof preview>["issues"]["warnings"];
 }
 
-/** Create a draft (optionally publish). Idempotent on client_request_id within the creator's scope. */
-export async function createPoll(ctx: Ctx, data: unknown, opts: { publish?: boolean } = {}): Promise<CreateResult> {
+/** Create a poll, open for answers right away. Idempotent on client_request_id within the creator's scope. */
+export async function createPoll(ctx: Ctx, data: unknown): Promise<CreateResult> {
   if (!canCreate(ctx)) throw new AppError("creation_disabled", 403);
   const { norm, issues } = preview(ctx, data);
   if (!norm) throw AppError.validation(issues);
@@ -78,24 +78,16 @@ export async function createPoll(ctx: Ctx, data: unknown, opts: { publish?: bool
     const existing = await ctx.store.byIdempotencyKey(scope, norm.clientRequestId);
     if (existing) {
       if (existing.poll.requestHash !== hash) throw new AppError("idempotency_conflict", 409, "client_request_id");
-      if (opts.publish && existing.poll.status === "draft") {
-        svc.publish(existing);
-        await ctx.store.commit(existing, { actor: actorLabel(ctx.actor) });
-      }
       return { agg: existing, created: false, warnings: issues.warnings };
     }
   }
   const agg = ctx.store.adopt(svc.newPoll(norm, owner, hash));
-  if (opts.publish) {
-    agg.poll.status = "open";
-    agg.audit.push({ action: "publish", detail: {} });
-  }
   try {
     await ctx.store.commit(agg, { actor: actorLabel(ctx.actor) });
   } catch (e) {
     // a concurrent identical request won the unique index: replay it
     if (norm.clientRequestId && /UNIQUE constraint failed: polls\./.test(String((e as Error).message) + String((e as { cause?: Error }).cause?.message))) {
-      return createPoll(ctx, data, opts);
+      return createPoll(ctx, data);
     }
     throw e;
   }

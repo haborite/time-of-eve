@@ -62,7 +62,7 @@ export async function pollBrief(agg: PollAggregate, links: Links, opts: { manage
     responded: agg.participants.filter((x) => x.respondedAt != null).length, version: p.version,
     created_at: new Date(p.createdAt).toISOString(),
   };
-  if (p.status !== "draft") out.public_url = links.publicUrl(p);
+  out.public_url = links.publicUrl(p);
   if (opts.manageUrl) out.manage_url = await links.manageUrl(p);
   if (p.hidden) out.hidden = true;
   return out;

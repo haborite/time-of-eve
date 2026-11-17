@@ -8,7 +8,7 @@ import { isValidTimeZone } from "../lib/time";
 import { AppError, Issues } from "./errors";
 import {
   CandidateInput, LIMITS, ParticipantInput, RangeInput, expandRanges, mergeSlots, resolveDateTime, validateCandidates,
-  validateParticipants, zodIssues, unknownKeys, type NormalizedPoll,
+  validateParticipants, zodIssues, unknownKeys, unknownRangeKeys, type NormalizedPoll,
 } from "./input";
 import {
   ANSWERS, activeCandidates, cKey, deriveAnswers, effectiveStatus, emptyDirty, findCandidate, findParticipant, pKey,
@@ -24,7 +24,7 @@ export function newPublicId(): string {
   return randomToken(18); // 144 bits, URL-safe
 }
 
-/** Build a new aggregate (draft) from validated input. */
+/** Build a new aggregate from validated input; it is open for answers from the start. */
 export function newPoll(norm: NormalizedPoll, owner: Owner, requestHash: string | null, now = Date.now()): PollAggregate {
   const agg: PollAggregate = {
     poll: {
@@ -32,7 +32,7 @@ export function newPoll(norm: NormalizedPoll, owner: Owner, requestHash: string 
       ownerScope: owner.userId != null ? `u:${owner.userId}` : "anon", manageNonce: randomToken(16),
       title: norm.title, description: norm.description, basis: norm.basis, timezone: norm.timezone,
       durationMinutes: norm.durationMinutes, responseDeadline: norm.responseDeadline,
-      showParticipantNames: norm.showParticipantNames, allowMaybe: norm.allowMaybe, status: "draft",
+      showParticipantNames: norm.showParticipantNames, allowMaybe: norm.allowMaybe, status: "open",
       finalizedCandidateNo: null, hidden: false, clientRequestId: norm.clientRequestId, requestHash,
       version: 1, createdAt: now, updatedAt: now,
     },
@@ -80,14 +80,6 @@ function invalidState(agg: PollAggregate) {
 }
 
 // ---------- state transitions ----------
-
-export function publish(agg: PollAggregate) {
-  if (agg.poll.status !== "draft") throw invalidState(agg);
-  if (!activeCandidates(agg).length) throw new AppError("no_candidates", 409);
-  touch(agg);
-  agg.poll.status = "open";
-  agg.audit.push({ action: "publish", detail: {} });
-}
 
 export function close(agg: PollAggregate) {
   if (effectiveStatus(agg.poll) !== "open") throw invalidState(agg);
@@ -170,6 +162,7 @@ export function patch(agg: PollAggregate, data: unknown, now = Date.now()): Issu
   const issues = new Issues();
   if (!data || typeof data !== "object" || Array.isArray(data)) throw new AppError("invalid_type", 400, "", { expected: "object" });
   unknownKeys(data as Record<string, unknown>, Object.keys(PatchInputShape), issues);
+  unknownRangeKeys((data as Record<string, unknown>).add_candidate_ranges, "add_candidate_ranges", issues);
   const parsed = PatchInput.safeParse(data);
   if (!parsed.success) {
     zodIssues(parsed.error, issues);

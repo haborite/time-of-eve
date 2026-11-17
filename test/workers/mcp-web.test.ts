@@ -26,7 +26,7 @@ describe("MCP server", () => {
 
   it("anonymous organizer + participant agents complete a poll", async () => {
     await setSettings({ creation_mode: "anyone" });
-    const created = await tool("create_poll", { ...POLL, publish: true });
+    const created = await tool("create_poll", POLL);
     expect(created.isError).toBe(false);
     const { manage_url, public_url } = created.data;
 
@@ -153,9 +153,11 @@ describe("web pages", () => {
     const form = (o: Record<string, string>) => req("/new/confirm", { method: "POST", headers: { Origin: ORIGIN }, body: new URLSearchParams(o) });
     const preview = await form({ json_text: json, action: "validate" });
     expect(await preview.text()).toContain('data-testid="import-preview"');
-    const noBot = await form({ json_text: json, action: "publish", confirm_publish: "1" });
+    // the /new form posts straight to creation (no confirmation step, no drafts)
+    const noBot = await form({ json_text: json, action: "create", from_new: "1" });
     expect(noBot.status).toBe(400);
-    const ok = await form({ json_text: json, action: "publish", confirm_publish: "1", "cf-turnstile-response": "XXXX.DUMMY.TOKEN.XXXX" });
+    expect(await noBot.text()).toContain('data-testid="back-to-new"');
+    const ok = await form({ json_text: json, action: "create", from_new: "1", "cf-turnstile-response": "XXXX.DUMMY.TOKEN.XXXX" });
     expect(ok.status).toBe(303);
     const loc = ok.headers.get("Location")!;
     expect(loc).toMatch(/^\/m\/[0-9A-Z]{26}\/[A-Za-z0-9_-]+\?done=created$/);
@@ -175,7 +177,7 @@ describe("web pages", () => {
 
   it("serves the answer page as HTML, Markdown for AI agents and JSON on request", async () => {
     const a = await admin();
-    const r = await req("/api/v1/polls", { method: "POST", json: { ...POLL, publish: true }, headers: { Authorization: `Bearer ${a.token}` } });
+    const r = await req("/api/v1/polls", { method: "POST", json: POLL, headers: { Authorization: `Bearer ${a.token}` } });
     const { public_url } = await r.json() as { public_url: string };
     const path = new URL(public_url).pathname;
     const html = await req(path);
@@ -194,7 +196,7 @@ describe("web pages", () => {
 
   it("uses the static share image by default and per-poll images only when enabled", async () => {
     const a = await admin();
-    const r = await req("/api/v1/polls", { method: "POST", json: { ...POLL, publish: true }, headers: { Authorization: `Bearer ${a.token}` } });
+    const r = await req("/api/v1/polls", { method: "POST", json: POLL, headers: { Authorization: `Bearer ${a.token}` } });
     const path = new URL(((await r.json()) as { public_url: string }).public_url).pathname;
     const ogImage = async (p: string) => /property="og:image" content="([^"]+)"/.exec(await (await req(p)).text())![1];
     expect(await ogImage(path)).toBe(`${ORIGIN}/static/og-default.png`);

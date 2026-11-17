@@ -10,11 +10,16 @@ describe("REST API: creation policy", () => {
     expect(anon.body.error.code).toBe("creation_disabled");
     const bad = await api("POST", "/polls", POLL, { Authorization: "Bearer sch_wrong" });
     expect(bad.status).toBe(401);
-    const ok = await api("POST", "/polls", { ...POLL, publish: true }, { Authorization: `Bearer ${a.token}` });
+    const ok = await api("POST", "/polls", POLL, { Authorization: `Bearer ${a.token}` });
     expect(ok.status).toBe(201);
-    expect(ok.body.status).toBe("open");
+    expect(ok.body.status).toBe("open"); // open on creation: there are no drafts
     expect(ok.body.public_url).toMatch(/^https:\/\/toe\.test\/p\/[A-Za-z0-9_-]+$/);
     expect(ok.body.manage_url).toMatch(/^https:\/\/toe\.test\/m\/[0-9A-Z]{26}\/[A-Za-z0-9_-]{40,}$/);
+    // the removed draft API: `publish` is an ignored unknown field, the publish action no longer exists
+    const legacy = await api("POST", "/polls", { ...POLL, publish: true }, { Authorization: `Bearer ${a.token}` });
+    expect(legacy.status).toBe(201);
+    expect(JSON.stringify(legacy.body.warnings)).toContain("unknown_field");
+    expect((await api("POST", `/polls/${ok.body.poll_id}/publish`, {}, { Authorization: `Bearer ${a.token}` })).status).toBe(404);
   });
 
   it("anyone: anonymous creation works and is idempotent per client_request_id", async () => {
@@ -53,7 +58,7 @@ describe("REST API: creation policy", () => {
 describe("REST API: organizer and participant flow", () => {
   async function created() {
     await setSettings({ creation_mode: "anyone" });
-    const r = await api("POST", "/polls", { ...POLL, publish: true });
+    const r = await api("POST", "/polls", POLL);
     const token = r.body.manage_url.split("/").pop();
     const publicId = r.body.public_url.split("/p/")[1];
     return { id: r.body.poll_id as string, token: token as string, publicId: publicId as string, m: { "X-Manage-Token": token } };
@@ -93,7 +98,7 @@ describe("REST API: organizer and participant flow", () => {
     expect(wrong.status).toBe(403);
 
     const stale = await api("POST", `/polls/${p.id}/finalize`, { candidate_id: "c2", version: 1 }, p.m);
-    expect(stale.status).toBe(200); // version 1 is current: publish happened at creation
+    expect(stale.status).toBe(200); // version 1 is current: polls open on creation
     const after = await api("POST", `/public/${p.publicId}/responses`, { display_name: "late", answers: {} });
     expect(after.body.error.code).toBe("not_accepting");
     const md = await req(`/p/${p.publicId}.md`);
@@ -137,7 +142,7 @@ describe("REST API: organizer and participant flow", () => {
       add_candidate_ranges: [{ date: "2030-01-10", start_time: "09:00", end_time: "11:00" }], remove_candidate_ids: ["c3"], version: 1,
     }, p.m);
     expect(r.status).toBe(200);
-    expect(r.body.candidates.map((c: { id: string }) => c.id)).toEqual(["c1", "c2", "c4", "c5"]);
+    expect(r.body.candidates.map((c: { id: string }) => c.id)).toEqual(["c1", "c2", "c4", "c5", "c6"]); // 09:00, 09:30, 10:00
     expect(r.body.results.candidates.find((c: { id: string }) => c.id === "c1").yes).toBe(1);
   });
 

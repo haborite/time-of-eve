@@ -69,6 +69,7 @@ export const polls = sqliteTable("polls", {
   responseDeadline: integer("response_deadline"),
   showParticipantNames: integer("show_participant_names", { mode: "boolean" }).notNull().default(false),
   allowMaybe: integer("allow_maybe", { mode: "boolean" }).notNull().default(true),
+  // "draft" is legacy (polls now open on creation; the app always sets status). Kept so the column needs no migration.
   status: text("status", { enum: ["draft", "open", "closed", "finalized", "cancelled"] }).notNull().default("draft"),
   finalizedCandidateNo: integer("finalized_candidate_no"),
   /** Moderation: hidden by an administrator (public page and API answer 404). */

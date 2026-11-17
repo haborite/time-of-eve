@@ -18,7 +18,7 @@ const W = 1200, H = 630;
 const PINK = "#fe899c", PINK_DARK = "#d6546c", PINK_SOFT = "#ffa0af", INK = "#333333", MUTED = "#787878", LINE = "#ececec";
 const STATUS_COLORS: Record<string, [string, string]> = {
   open: ["#2ea05a", "#e6f6ec"], closed: ["#6e6e6e", "#eeeeee"], finalized: [PINK_DARK, "#ffebef"],
-  cancelled: ["#969696", "#f0f0f0"], draft: ["#6e6e6e", "#eeeeee"],
+  cancelled: ["#969696", "#f0f0f0"],
 };
 
 type Node = { type: string; props: Record<string, unknown> };

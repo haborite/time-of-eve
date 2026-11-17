@@ -186,7 +186,8 @@ web.get("/new", async (c) => {
   const v = view(c);
   if (!v.canCreate) return denyCreate(c);
   return html(c, <NewPage v={v} meta={await siteMeta(v.lang, c.get("links"), "/new", t(v.lang, "日程をえらぶ"))}
-    maxCandidates={LIMITS.maxCandidates} defaultTz={c.get("settings").default_timezone} durLabel={(m) => durLabel(v.lang, m)} />);
+    maxCandidates={LIMITS.maxCandidates} defaultTz={c.get("settings").default_timezone} durLabel={(m) => durLabel(v.lang, m)}
+    turnstileSiteKey={!c.get("session") && c.env.TURNSTILE_SITE_KEY ? c.env.TURNSTILE_SITE_KEY : null} />);
 });
 
 async function confirmPage(c: C, o: { raw: string; fromNew: boolean; result?: PreviewData | null; parseError?: string | null }, status = 200) {
@@ -253,10 +254,7 @@ web.post("/new/confirm", async (c) => {
       errors: pv.issues.errors.map((e) => renderIssue(v.lang, e)), warnings: pv.issues.warnings.map((e) => renderIssue(v.lang, e)), ...extra,
     },
   }, status);
-  if (!(action === "create" || action === "publish") || !pv.norm) return render();
-  if (action === "publish" && form.confirm_publish !== "1") {
-    return render({ errors: [{ code: "confirm_required", field: "", message: t(v.lang, "公開するには「内容を確認しました」にチェックしてください") }] });
-  }
+  if (action !== "create" || !pv.norm) return render();
   if (!sess) {
     await rateLimit(c, "RL_CREATE");
     if (!(await verifyTurnstile(c, form["cf-turnstile-response"]))) {
@@ -264,7 +262,7 @@ web.post("/new/confirm", async (c) => {
     }
   }
   try {
-    const r = await uc.createPoll(ctx, data, { publish: action === "publish" });
+    const r = await uc.createPoll(ctx, data);
     const flag = r.created ? "created" : "existing";
     if (sess) return c.redirect(`/admin/polls/${r.agg.poll.id}?done=${flag}`, 303);
     return c.redirect(`${new URL(await ctx.links.manageUrl(r.agg.poll)).pathname}?done=${flag}`, 303);
@@ -278,7 +276,7 @@ web.post("/new/confirm", async (c) => {
 
 const DONE: Record<string, string> = {
   created: "作成しました。", existing: "同じ client_request_id の日程調整が既にあるため、既存のページを表示しています（重複作成なし）。",
-  publish: "公開しました", close: "締め切りました", reopen: "回答受付を再開しました", finalize: "日程を確定しました",
+  close: "締め切りました", reopen: "回答受付を再開しました", finalize: "日程を確定しました",
   unfinalize: "確定を取り消しました", cancel: "中止しました", add_candidate: "候補を追加しました", remove_candidate: "候補を削除しました（既存回答は保持）",
   add_participant: "参加予定者を追加しました", toggle_required: "必須設定を変更しました", toggle_names: "回答者名の公開設定を変更しました",
   set_deadline: "回答期限を変更しました", save_template: "テンプレートとして保存しました", rotate_manage_link: "管理用URLを作り直しました。新しいURLを保存してください。",
@@ -340,7 +338,6 @@ async function manageAction(c: C, ref: uc.PollRef, base: string) {
     }
     const { agg } = await uc.organizerChange(ctx, ref, (agg) => {
       switch (action) {
-        case "publish": return svc.publish(agg);
         case "close": return svc.close(agg);
         case "reopen": return svc.reopen(agg, null);
         case "finalize": return svc.finalize(agg, str("candidate_id"), version);

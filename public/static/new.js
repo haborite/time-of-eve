@@ -362,9 +362,9 @@
         var a = bl[0], b = bl[1];
         if (mode === "block") { list.push([d, a, b]); return; }
         if (b - a < n) { frag++; return; }
-        if (mode === "slide") { for (var s = a; s + n <= b; s++) list.push([d, s, s + n]); return; }
-        for (var t = a; t + n <= b; t += n) list.push([d, t, t + n]);
-        if ((b - a) % n) frag++;
+        // a candidate of the meeting length starts every 30 minutes (every duration if shorter, e.g. 15 min)
+        var step = Math.min(1, n);
+        for (var s = a; s + n <= b; s += step) list.push([d, s, s + n]);
       });
     });
     return { list: list, frag: frag };

@@ -30,7 +30,7 @@ Cloudflare Workers + D1 で動作します（TypeScript / Hono / Drizzle ORM / Z
 AIが間違えにくいよう、サーバー側で次のことを引き受けます。
 
 - オフセットなしの現地時刻（`"2026-12-01T13:00"`）と `timezone` を受け付け、夏時間を含めてオフセットを決める
-- `candidate_ranges`（「平日 13:00〜17:00」のような時間帯）を `duration_minutes` で候補に分割する
+- `candidate_ranges`（「平日 13:00〜17:00」のような時間帯）から、`duration_minutes` の長さの候補を開始時刻30分ごとに作る
 - `dry_run`、`client_request_id` による安全な再送、`{code, field, message, hint}` 形式のエラー
 
 詳細は起動後の `/llms.txt` または [src/docs/llms.md](src/docs/llms.md) を参照してください。

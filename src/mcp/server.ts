@@ -90,8 +90,8 @@ export function instructions(m: McpContext): string {
   ];
   if (create) {
     s.push(
-      "ORGANIZER: confirm title, length, time zone, date range, participants and constraints with the user → create_poll with dry_run=true to check → create_poll with publish=true when the user agrees → give the user public_url (to send to participants) and manage_url (the organizer's private key: keep it, it is needed for every later step; never post it publicly).",
-      "Prefer local times without offset (\"2026-12-01T13:00\") with `timezone`, and candidate_ranges for windows (\"weekdays 13:00–17:00 next week\") — the server splits them by duration_minutes and handles DST.",
+      "ORGANIZER: confirm title, length, time zone, date range, participants and constraints with the user → create_poll with dry_run=true to check and show the user → create_poll when the user agrees (it opens for answers immediately; there are no drafts) → give the user public_url (to send to participants) and manage_url (the organizer's private key: keep it, it is needed for every later step; never post it publicly).",
+      "Prefer local times without offset (\"2026-12-01T13:00\") with `timezone`, and candidate_ranges for windows (\"weekdays 13:00–17:00 next week\") — the server turns them into slots of duration_minutes starting every 30 minutes and handles DST.",
       "Then: get_results (best_candidate_ids, pending_names) → finalize_poll after the user chooses.",
     );
   } else {
@@ -186,26 +186,23 @@ export function buildServer(m: McpContext): McpServer {
   if (uc.canCreate(ctx)) {
     server.registerTool("create_poll", {
       title: "Create a poll",
-      description: "Create a scheduling poll. Give candidates as explicit slots (`candidates`, local time like \"2026-12-01T13:00\"; `end` optional with duration_minutes) and/or windows (`candidate_ranges`, split by duration_minutes server-side). dry_run=true only validates and previews. publish=true opens it immediately and returns public_url (share with participants); otherwise a draft. Always returns manage_url: the organizer's private key for all later steps — tell the user to keep it. client_request_id makes retries safe.",
+      description: "Create a scheduling poll. Give candidates as explicit slots (`candidates`, local time like \"2026-12-01T13:00\"; `end` optional with duration_minutes) and/or windows (`candidate_ranges`: slots of duration_minutes starting every 30 minutes, made server-side). dry_run=true only validates and previews; without it the poll is created and opened for answers immediately (there are no drafts), so create only after the user agreed. Returns public_url (share with participants) and manage_url: the organizer's private key for all later steps — tell the user to keep it. client_request_id makes retries safe.",
       inputSchema: {
         ...PollInputShape,
-        publish: z.boolean().optional().describe("Open for answers now (only when the user agreed)"),
         dry_run: z.boolean().optional().describe("Validate and preview only; nothing is saved"),
       },
       annotations: RW,
     }, (a) => run(async () => {
-      const { publish, dry_run, ...data } = a;
+      const { dry_run, ...data } = a;
       if (dry_run) {
         const { result } = uc.preview(ctx, data);
         return { ...result, errors: (result.errors as never[]).map((e) => renderIssue(lang, e)), warnings: warnings(result.warnings as never[]) };
       }
-      const r = await uc.createPoll(ctx, data, { publish });
+      const r = await uc.createPoll(ctx, data);
       const out = await uc.createdResponse(ctx, r);
       return {
         ...out, warnings: warnings(out.warnings),
-        next_step: r.agg.poll.status === "draft"
-          ? "Draft created (participants cannot see it). Show the user the manage_url; call publish_poll when they approve."
-          : "Published. Give the user public_url to share with participants and manage_url to keep private. Read progress with get_results.",
+        next_step: "Created and open for answers. Give the user public_url to share with participants and manage_url to keep private. Read progress with get_results.",
       };
     }));
   }
@@ -234,11 +231,10 @@ export function buildServer(m: McpContext): McpServer {
     return { ...(await pollDetail(agg, ctx.links)), warnings: warnings(value.warnings) };
   }));
 
-  const transition = (name: string, title: string, description: string, fn: (agg: Parameters<typeof svc.publish>[0]) => void, ann = RW) =>
+  const transition = (name: string, title: string, description: string, fn: (agg: Parameters<typeof svc.close>[0]) => void, ann = RW) =>
     server.registerTool(name, { title, description, inputSchema: { poll: ORGANIZER_REF }, annotations: ann },
       ({ poll }) => run(async () => pollBrief((await uc.organizerChange(ctx, organizerRef(ctx, poll), fn)).agg, ctx.links)));
 
-  transition("publish_poll", "Publish a draft", "Open a draft for answers; returns public_url to share with participants.", svc.publish);
   transition("close_poll", "Stop accepting answers", "Close the poll (status closed). Undo with reopen_poll.", svc.close);
   transition("unfinalize_poll", "Undo finalize", "Undo finalize_poll (status back to closed).", svc.unfinalize);
   transition("cancel_poll", "Cancel a poll", "Cancel the poll; the public page shows it as cancelled. Only on the user's explicit request.", svc.cancel, DESTRUCTIVE);
@@ -287,14 +283,14 @@ export function buildServer(m: McpContext): McpServer {
     server.registerTool("list_polls", {
       title: "List my polls (administrator)",
       description: "Newest 100 polls created by this administrator (all=true: every poll on the site): poll_id, status, title, counts, public_url, manage_url.",
-      inputSchema: { status: z.enum(["draft", "open", "closed", "finalized", "cancelled"]).optional(), all: z.boolean().optional() },
+      inputSchema: { status: z.enum(["open", "closed", "finalized", "cancelled"]).optional(), all: z.boolean().optional() },
       annotations: RO,
     }, ({ status, all }) => run(async () => {
       const rows = await ctx.store.list({ ownerUserId: all || ctx.actor.kind !== "admin" ? undefined : ctx.actor.user.id, status, limit: 100 });
       return {
         polls: await Promise.all(rows.map(async (r) => ({
           poll_id: r.id, title: r.title, status: r.status, candidate_count: r.candidateCount, responded: r.responded,
-          public_url: r.status !== "draft" ? ctx.links.publicUrl(r) : null, manage_url: await ctx.links.manageUrl(r),
+          public_url: ctx.links.publicUrl(r), manage_url: await ctx.links.manageUrl(r),
         }))),
       };
     }));
@@ -323,7 +319,7 @@ export function buildServer(m: McpContext): McpServer {
       description: "Plan candidates with the user and create a poll",
       argsSchema: { request: z.string().describe("What to schedule (who, how long, when)") },
     }, ({ request }) => ({
-      messages: [{ role: "user", content: { type: "text", text: `Create a scheduling poll with Time of EVE for: ${request}\n\nConfirm missing details (length, time zone, date range, participants) with me first. Use candidate_ranges for time windows, dry_run first, then create_poll with publish=true after I agree. Give me public_url and manage_url.` } }],
+      messages: [{ role: "user", content: { type: "text", text: `Create a scheduling poll with Time of EVE for: ${request}\n\nConfirm missing details (length, time zone, date range, participants) with me first. Use candidate_ranges for time windows, dry_run first, then create_poll after I agree (it opens immediately). Give me public_url and manage_url.` } }],
     }));
   }
   server.registerPrompt("answer_poll", {

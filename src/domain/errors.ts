@@ -65,10 +65,9 @@ const M: Record<string, Entry> = {
   },
   candidate_in_past: { ja: "過去の日時です", en: "This date/time is in the past" },
   duplicate_candidate: { ja: "{other} と重複しています", en: "Duplicate of {other}" },
-  candidate_overlap: { ja: "{other} と時間帯が重なっています", en: "Overlaps {other}" },
   no_candidates: {
     ja: "候補がありません", en: "There are no candidates",
-    hint_en: "Give `candidates` (explicit slots) and/or `candidate_ranges` (windows split by duration_minutes).",
+    hint_en: "Give `candidates` (explicit slots) and/or `candidate_ranges` (windows made into slots of duration_minutes, starting every 30 minutes).",
   },
   too_many_candidates: { ja: "候補は{max}件以内にしてください（{n}件）", en: "At most {max} candidates ({n} given)" },
   range_needs_duration: {
@@ -139,7 +138,7 @@ const M: Record<string, Entry> = {
 };
 
 const STATUS_LABEL: Record<string, { ja: string; en: string }> = {
-  draft: { ja: "下書き", en: "draft" }, open: { ja: "回答受付中", en: "open" }, closed: { ja: "締切", en: "closed" },
+  open: { ja: "回答受付中", en: "open" }, closed: { ja: "締切", en: "closed" },
   finalized: { ja: "確定済み", en: "finalized" }, cancelled: { ja: "中止", en: "cancelled" },
 };
 

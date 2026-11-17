@@ -27,7 +27,7 @@ export interface Card {
   responded: string;
 }
 
-export const STATUS_LABEL_JA: Record<string, string> = { draft: "下書き", open: "回答受付中", closed: "締切", finalized: "確定済み", cancelled: "中止" };
+export const STATUS_LABEL_JA: Record<string, string> = { open: "回答受付中", closed: "締切", finalized: "確定済み", cancelled: "中止" };
 
 function md(lang: Lang, d: Local) {
   const wd = lang === "en" ? "" : `(${"月火水木金土日"[d.weekday]})`;

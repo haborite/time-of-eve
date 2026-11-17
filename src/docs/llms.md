@@ -20,7 +20,7 @@ This document: `{{BASE}}/llms.txt` · MCP: `{{BASE}}/mcp` · OpenAPI 3.1: `{{BAS
 |---|---|---|
 | MCP (recommended) | Your client can connect to a remote MCP server (Streamable HTTP) | `{{BASE}}/mcp`. No token needed for participants{{MCP_CREATE}}. Administrators: header `Authorization: Bearer sch_…`, or OAuth at `{{BASE}}/mcp/admin`. |
 | REST API | You can send HTTPS requests | Section 5. |
-| Browser | You can operate a browser | Open `{{BASE}}/new/import`, paste the poll JSON, Validate, tick the confirmation, "作成して公開" (Create and publish). |
+| Browser | You can operate a browser | Open `{{BASE}}/new/import`, paste the poll JSON, Validate, check the preview, "作成して公開" (Create and publish). |
 | Manual | Plain chat only | Output the poll JSON in one code block and ask the user to paste it at `{{BASE}}/new/import`. |
 
 Rules:
@@ -36,7 +36,8 @@ Rules:
 - Times are on 5-minute boundaries. Typical size: 5–20 candidates; limit {{MAX_CANDIDATES}}.
 - Two ways to give candidates (can be combined):
   - `candidates`: explicit slots `{"start": "2026-12-01T13:00", "end": "2026-12-01T14:00"}`. With `duration_minutes` set, `end` can be omitted.
-  - `candidate_ranges`: windows the server splits into slots of `duration_minutes`: `{"from_date": "2026-12-01", "to_date": "2026-12-05", "weekdays": ["mon","wed","fri"], "start_time": "13:00", "end_time": "17:00"}` (or `date` / `dates`; `step_minutes` for overlapping slots). Past slots are skipped.
+  - `candidate_ranges`: windows the server turns into slots of `duration_minutes`, one starting every 30 minutes (every `duration_minutes` if shorter), so slots overlap: 13:00–17:00 with 60 minutes → 13:00, 13:30, …, 16:00 (7 slots). `{"from_date": "2026-12-01", "to_date": "2026-12-05", "weekdays": ["mon","wed","fri"], "start_time": "13:00", "end_time": "17:00"}` (or `date` / `dates`). Past slots are skipped.
+  - To offer a whole window as one candidate ("any time this afternoon"), give it as an explicit candidate with `start` and `end` instead of a range.
 - `client_request_id` (optional, recommended): a unique key per poll you intend to create. Resending the identical body returns the same poll (`idempotent_replay: true`) — safe retries. Same key with a different body → `409 idempotency_conflict`.
 - Use `dry_run: true` first to see errors, warnings and the expanded candidate list without saving.
 
@@ -77,7 +78,7 @@ Rules:
 
 ## 4. Statuses and ranking
 
-`draft` (participants cannot see it) → `open` (accepting) → `closed` → `finalized`; any → `cancelled`. An open poll past its deadline behaves as `closed`; `reopen` re-opens it.
+`open` (accepting; a poll is open as soon as it is created — there are no drafts) → `closed` → `finalized`; any → `cancelled`. An open poll past its deadline behaves as `closed`; `reopen` re-opens it.
 Ranking (`best_candidate_ids`): candidates where every required participant answered yes → most yes → fewest no → most maybe. Only candidates with at least one yes are ranked.
 
 ## 5. REST API (JSON)
@@ -87,11 +88,11 @@ Organizer endpoints authenticate with **one** of: header `X-Manage-Token: <token
 | method | path | |
 |---|---|---|
 | GET | `/api/v1` | service info (who can create, default time zone, links) |
-| POST | `/api/v1/polls` | create. Body: poll JSON (+ `"publish": true`, `"dry_run": true`). 201 → `{poll_id, status, public_url, manage_url, version, warnings, idempotent_replay}` |
+| POST | `/api/v1/polls` | create and open for answers. Body: poll JSON (+ `"dry_run": true` to validate only). 201 → `{poll_id, status, public_url, manage_url, version, warnings, idempotent_replay}` |
 | GET | `/api/v1/polls/{poll_id}` | details + results summary |
 | PATCH | `/api/v1/polls/{poll_id}` | edit: `title`, `description`, `basis`, `response_deadline` (null removes), `show_participant_names`, `duration_minutes`, `add_candidates`, `add_candidate_ranges`, `remove_candidate_ids`, `add_participants`, `set_required` `{"p1": true}`, `version` |
 | GET | `/api/v1/polls/{poll_id}/results?view=summary\|full` | tally and ranking |
-| POST | `/api/v1/polls/{poll_id}/publish` · `close` · `reopen` (`{"response_deadline"?}`) · `finalize` (`{"candidate_id": "c2", "version"?}`) · `unfinalize` · `cancel` · `rotate-manage-link` | state changes |
+| POST | `/api/v1/polls/{poll_id}/close` · `reopen` (`{"response_deadline"?}`) · `finalize` (`{"candidate_id": "c2", "version"?}`) · `unfinalize` · `cancel` · `rotate-manage-link` | state changes |
 | POST | `/api/v1/polls/{poll_id}/participants/{p}/reissue-edit-link` | new edit_url for a participant |
 | DELETE | `/api/v1/polls/{poll_id}` | delete permanently |
 | GET | `/api/v1/polls` | administrators: list polls |
@@ -105,11 +106,11 @@ The public page `{{BASE}}/p/{public_id}` also answers with Markdown (`/p/{id}.md
 ## 6. MCP tools
 
 Participants: `get_public_poll(poll)`, `submit_response(poll, display_name | participant_id, answers, comment?)`, `get_my_response(edit_url)`, `update_my_response(edit_url, answers?, replace_all?, comment?)`.
-Organizers (`poll` = manage_url; administrators may pass poll_id): `create_poll(…poll fields, publish?, dry_run?)`, `get_poll`, `get_results(view?)`, `update_poll`, `publish_poll`, `close_poll`, `reopen_poll(response_deadline?)`, `finalize_poll(candidate_id, version?)`, `unfinalize_poll`, `cancel_poll`, `reissue_edit_link(participant_id)`, `delete_poll`. Administrators: `list_polls`.
+Organizers (`poll` = manage_url; administrators may pass poll_id): `create_poll(…poll fields, dry_run?)`, `get_poll`, `get_results(view?)`, `update_poll`, `close_poll`, `reopen_poll(response_deadline?)`, `finalize_poll(candidate_id, version?)`, `unfinalize_poll`, `cancel_poll`, `reissue_edit_link(participant_id)`, `delete_poll`. Administrators: `list_polls`.
 Also: `get_guide`; resources `time-of-eve://docs/guide`, `time-of-eve://docs/poll-schema.json`, `time-of-eve://polls/{public_id}`; prompts `organize_poll`, `answer_poll`.
 
 ## 7. Errors
 
 `{"error": {"code", "field", "message", "hint"}, "errors": [...], "warnings": [...], "docs": "{{BASE}}/llms.txt"}`. Fix every entry of `errors` (`field` says where, `hint` says how) and retry. Common codes:
 `validation_failed` (see errors[]), `invalid_datetime`, `timezone_mismatch` (drop the offset), `nonexistent_local_time` (DST gap), `missing_end`, `duration_mismatch`, `range_needs_duration`, `no_candidates`, `too_many_candidates`, `idempotency_conflict`, `version_conflict` (re-read and retry), `invalid_state`, `not_accepting`, `use_participant_id` (the name is an invitee: send participant_id), `already_responded` (use the edit_url), `invalid_manage_token`, `invalid_edit_token`, `creation_disabled`, `rate_limited` (wait a minute).
-Warnings (`candidate_in_past`, `candidate_overlap`, `deadline_after_candidate`, `range_empty`, `unknown_field`, …) do not block.
+Warnings (`candidate_in_past`, `deadline_after_candidate`, `range_empty`, `unknown_field`, …) do not block.

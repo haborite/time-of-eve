@@ -80,8 +80,7 @@ api.post("/polls", async (c) => {
     return c.json(renderPreview(c, result));
   }
   if (x.actor.kind === "anonymous") await rateLimit(c, "RL_CREATE");
-  const publish = (data as { publish?: unknown })?.publish === true || c.req.query("publish") === "1";
-  const r = await uc.createPoll(x, data, { publish });
+  const r = await uc.createPoll(x, data);
   return c.json(renderWarnings(c, await uc.createdResponse(x, r)), r.created ? 201 : 200);
 });
 
@@ -95,7 +94,7 @@ api.get("/polls", async (c) => {
   return c.json({
     polls: await Promise.all(rows.map(async (r) => ({
       poll_id: r.id, title: r.title, status: r.status, candidate_count: r.candidateCount, responded: r.responded, version: r.version,
-      public_url: r.status !== "draft" ? l.publicUrl(r) : undefined, manage_url: await l.manageUrl(r), hidden: r.hidden || undefined,
+      public_url: l.publicUrl(r), manage_url: await l.manageUrl(r), hidden: r.hidden || undefined,
       created_at: new Date(r.createdAt).toISOString(),
     }))),
   });
@@ -135,8 +134,7 @@ api.get("/polls/:id/export.csv", async (c) => {
   });
 });
 
-const ACTIONS: Record<string, (agg: Parameters<typeof svc.publish>[0], body: Record<string, unknown>) => unknown> = {
-  publish: (agg) => svc.publish(agg),
+const ACTIONS: Record<string, (agg: Parameters<typeof svc.close>[0], body: Record<string, unknown>) => unknown> = {
   close: (agg) => svc.close(agg),
   reopen: (agg, b) => svc.reopen(agg, svc.parseDeadlineArg(agg, b.response_deadline)),
   finalize: (agg, b) => {
@@ -149,7 +147,7 @@ const ACTIONS: Record<string, (agg: Parameters<typeof svc.publish>[0], body: Rec
   "rotate-manage-link": (agg) => svc.rotateManageLink(agg),
 };
 
-api.post("/polls/:id/:action{publish|close|reopen|finalize|unfinalize|cancel|rotate-manage-link}", async (c) => {
+api.post("/polls/:id/:action{close|reopen|finalize|unfinalize|cancel|rotate-manage-link}", async (c) => {
   const body = (await readJson(c)) as Record<string, unknown>;
   const x = ctx(c);
   const action = c.req.param("action");

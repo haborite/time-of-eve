@@ -31,7 +31,7 @@ export function pollJsonSchema() {
     $schema: "https://json-schema.org/draft/2020-12/schema",
     title: "Time of EVE poll",
     description: "Body of POST /api/v1/polls and arguments of the MCP tool create_poll. Times: local \"YYYY-MM-DDTHH:MM\" in `timezone` (or ISO 8601 with the correct offset).",
-    ...schema(PollInput.extend({ publish: z.boolean().optional(), dry_run: z.boolean().optional() })),
+    ...schema(PollInput.extend({ dry_run: z.boolean().optional() })),
     required: ["title"],
   };
 }
@@ -73,7 +73,7 @@ export function openApi(base: string) {
     },
     paths: {
       "/polls": {
-        post: op("createPoll", "Create a poll (publish: true to open it; dry_run: true to validate only). Returns public_url and manage_url.", {
+        post: op("createPoll", "Create a poll, open for answers right away (dry_run: true to validate only). Returns public_url and manage_url.", {
           security: [{}, { bearer: [] }], requestBody: { required: true, ...json({ $ref: "#/components/schemas/Poll" }) },
           responses: { 201: { description: "Created", ...json(obj) }, 200: { description: "Idempotent replay or dry run", ...json(obj) }, ...errors },
         }),
@@ -87,7 +87,7 @@ export function openApi(base: string) {
       "/polls/{poll_id}/results": {
         get: op("getResults", "Tally and ranking", { parameters: [pollId, { name: "view", in: "query", schema: { enum: ["summary", "full"] } }], security: manage }),
       },
-      ...Object.fromEntries(["publish", "close", "reopen", "finalize", "unfinalize", "cancel", "rotate-manage-link"].map((a) => [`/polls/{poll_id}/${a}`, {
+      ...Object.fromEntries(["close", "reopen", "finalize", "unfinalize", "cancel", "rotate-manage-link"].map((a) => [`/polls/{poll_id}/${a}`, {
         post: op(`${a.replace(/-(\w)/g, (_, x) => x.toUpperCase())}Poll`, a === "finalize" ? "Fix the date: {candidate_id, version?}" : a === "reopen" ? "Reopen: {response_deadline?}" : `${a} the poll`, {
           parameters: [pollId], security: manage,
           requestBody: { required: false, ...json(a === "finalize" ? { type: "object", required: ["candidate_id"], properties: { candidate_id: { type: "string" }, version: { type: "integer" } } } : a === "reopen" ? { type: "object", properties: { response_deadline: { type: "string" } } } : obj) },

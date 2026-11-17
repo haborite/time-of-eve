@@ -47,8 +47,11 @@ export const RangeInput = z.object({
   weekdays: z.array(z.enum(WEEKDAYS)).optional().describe("Keep only these weekdays, e.g. [\"mon\",\"wed\"]"),
   start_time: z.string().describe("Window start HH:MM (local)"),
   end_time: z.string().describe("Window end HH:MM (local, 24:00 allowed)"),
-  step_minutes: z.number().int().optional().describe("Start a slot every N minutes (default duration_minutes = back-to-back slots)"),
-}).describe("A time window split into slots of duration_minutes, e.g. weekdays 13:00–17:00 of a week.");
+}).describe("A time window turned into slots of duration_minutes starting every 30 minutes (every duration_minutes if shorter), e.g. weekdays 13:00–17:00 of a week.");
+
+/** Slots from a range start this often (minutes); shorter meetings start every duration_minutes instead. */
+export const RANGE_STEP_MINUTES = 30;
+const RANGE_KEYS = Object.keys(RangeInput.shape);
 
 export const ParticipantInput = z.object({
   display_name: z.string().describe("Name shown in the poll"),
@@ -111,6 +114,14 @@ export function zodIssues(err: z.ZodError, issues: Issues, prefix = "") {
 
 export function unknownKeys(data: Record<string, unknown>, known: readonly string[], issues: Issues, prefix = "") {
   for (const k of Object.keys(data)) if (!known.includes(k)) issues.warn("unknown_field", prefix + k);
+}
+
+/** Unknown keys inside each range (e.g. the removed `step_minutes`); run on the raw input, before zod strips them. */
+export function unknownRangeKeys(ranges: unknown, field: string, issues: Issues) {
+  if (!Array.isArray(ranges)) return;
+  ranges.forEach((r, i) => {
+    if (r && typeof r === "object" && !Array.isArray(r)) unknownKeys(r as Record<string, unknown>, RANGE_KEYS, issues, `${field}[${i}].`);
+  });
 }
 
 /** Text field: trim, check length. */
@@ -248,11 +259,7 @@ export function expandRanges(
     const st = parseTime(r.start_time), et = parseTime(r.end_time);
     if (!st) issues.err("invalid_time", `${f}.start_time`);
     if (!et) issues.err("invalid_time", `${f}.end_time`);
-    const step = r.step_minutes ?? duration;
-    if (r.step_minutes != null && (r.step_minutes < 5 || r.step_minutes > 1440 || r.step_minutes % 5)) {
-      issues.err("invalid_duration", `${f}.step_minutes`);
-      bad = true;
-    }
+    const step = Math.min(RANGE_STEP_MINUTES, duration);
     if (bad || !st || !et) return;
     const a = st.h * 60 + st.mi, b = et.h * 60 + et.mi;
     if (a % 5 || b % 5) {
@@ -280,7 +287,7 @@ export function expandRanges(
   return out;
 }
 
-/** Merge, dedupe, sort; errors for explicit duplicates, warnings for explicit overlaps. */
+/** Merge, dedupe, sort; errors for explicit duplicates. */
 export function mergeSlots(slots: Slot[], issues: Issues, existing: { startAt: number; endAt: number }[] = []): Slot[] {
   const seen = new Map<string, Slot>();
   const existingSet = new Set(existing.map((c) => `${c.startAt}-${c.endAt}`));
@@ -299,11 +306,8 @@ export function mergeSlots(slots: Slot[], issues: Issues, existing: { startAt: n
     seen.set(k, s);
     out.push(s);
   }
+  // overlapping candidates are normal (slots start every 30 minutes), so they are not reported
   out.sort((a, b) => a.startAt - b.startAt || a.endAt - b.endAt);
-  for (let i = 1; i < out.length; i++) {
-    const a = out[i - 1], b = out[i];
-    if (b.startAt < a.endAt && a.explicit && b.explicit) issues.warn("candidate_overlap", b.field, { other: a.field });
-  }
   return out;
 }
 
@@ -339,7 +343,7 @@ export function validateDuration(v: unknown, issues: Issues, field = "duration_m
   return v;
 }
 
-export const KNOWN_KEYS = [...Object.keys(PollInputShape), "dry_run", "publish"] as const;
+export const KNOWN_KEYS = [...Object.keys(PollInputShape), "dry_run"] as const;
 
 /** Validate a creation payload. Returns normalized data (null if any error) and all issues. */
 export function validatePollInput(data: unknown, opts: ValidateOptions): { norm: NormalizedPoll | null; issues: Issues } {
@@ -350,6 +354,7 @@ export function validatePollInput(data: unknown, opts: ValidateOptions): { norm:
     return { norm: null, issues };
   }
   unknownKeys(data as Record<string, unknown>, KNOWN_KEYS, issues);
+  unknownRangeKeys((data as Record<string, unknown>).candidate_ranges, "candidate_ranges", issues);
   const parsed = PollInput.safeParse(data);
   if (!parsed.success) {
     zodIssues(parsed.error, issues);
@@ -402,7 +407,7 @@ export async function requestHash(data: unknown): Promise<string> {
 export function stableStringify(v: unknown): string {
   if (Array.isArray(v)) return `[${v.map(stableStringify).join(",")}]`;
   if (v && typeof v === "object") {
-    return `{${Object.keys(v as object).filter((k) => k !== "dry_run" && k !== "publish").sort()
+    return `{${Object.keys(v as object).filter((k) => k !== "dry_run").sort()
       .map((k) => `${JSON.stringify(k)}:${stableStringify((v as Record<string, unknown>)[k])}`).join(",")}}`;
   }
   return JSON.stringify(v ?? null);

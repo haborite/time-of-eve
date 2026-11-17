@@ -21,9 +21,7 @@ function poll(extra: Record<string, unknown> = {}): PollAggregate {
     participants: [{ display_name: "A", required: true }, { display_name: "B" }],
     ...extra,
   }, opts);
-  const agg = svc.newPoll(norm!, { userId: null }, null, NOW);
-  svc.publish(agg);
-  return agg;
+  return svc.newPoll(norm!, { userId: null }, null, NOW);
 }
 
 describe("poll input validation", () => {
@@ -40,16 +38,22 @@ describe("poll input validation", () => {
       candidate_ranges: [{ from_date: "2026-11-30", to_date: "2026-12-06", weekdays: ["mon", "wed"], start_time: "13:00", end_time: "15:30" }],
     }, opts);
     expect(codes(r).errors).toEqual([]);
-    expect(r.norm!.candidates).toHaveLength(4); // Mon + Wed × 13:00, 14:00 (15:00–16:00 does not fit)
+    expect(r.norm!.candidates).toHaveLength(8); // Mon + Wed × 13:00, 13:30, 14:00, 14:30 (15:00–16:00 does not fit)
   });
 
-  it("supports overlapping slots with step_minutes and dedupes against explicit candidates", () => {
+  it("starts range slots every 30 minutes, dedupes against explicit candidates, and ignores step_minutes", () => {
     const r = validatePollInput({
       title: "x", duration_minutes: 60,
       candidates: [{ start: "2026-12-01T13:00" }],
-      candidate_ranges: [{ date: "2026-12-01", start_time: "13:00", end_time: "15:00", step_minutes: 30 }],
+      candidate_ranges: [{ date: "2026-12-01", start_time: "13:00", end_time: "15:00", step_minutes: 60 }],
     }, opts);
     expect(r.norm!.candidates).toHaveLength(3); // 13:00, 13:30, 14:00 (13:00 deduped)
+    expect(codes(r).warnings).toContain("unknown_field@candidate_ranges[0].step_minutes");
+  });
+
+  it("starts short range slots every duration_minutes", () => {
+    const r = validatePollInput({ title: "x", duration_minutes: 15, candidate_ranges: [{ date: "2026-12-01", start_time: "13:00", end_time: "14:00" }] }, opts);
+    expect(r.norm!.candidates.map((c) => (c.startAt - Date.UTC(2026, 11, 1, 4, 0)) / 60000)).toEqual([0, 15, 30, 45]);
   });
 
   it("reports every problem with codes and fields", () => {
@@ -79,7 +83,7 @@ describe("poll input validation", () => {
     const w = validatePollInput({
       title: "x", candidates: [{ start: "2026-12-01T13:00", end: "2026-12-01T15:00" }, { start: "2026-12-01T14:00", end: "2026-12-01T16:00" }, { start: "2026-01-01T10:00", end: "2026-01-01T11:00" }],
     }, opts);
-    expect(codes(w).warnings).toEqual(expect.arrayContaining(["candidate_overlap@candidates[1]", "candidate_in_past@candidates[2]"]));
+    expect(codes(w).warnings).toEqual(["candidate_in_past@candidates[2]"]); // overlapping candidates are not reported
   });
 
   it("requires candidates, a valid time zone and duration for ranges", () => {
@@ -127,7 +131,8 @@ describe("results and ranking", () => {
 describe("service rules", () => {
   it("guards state transitions", () => {
     const agg = poll();
-    expect(() => svc.publish(agg)).toThrow(AppError);
+    expect(agg.poll.status).toBe("open"); // polls open on creation (no drafts)
+    expect(() => svc.reopen(agg, null, NOW)).toThrow(AppError);
     svc.close(agg);
     expect(() => svc.submitResponse(agg, { display_name: "x", answers: {} }, NOW)).toThrowError("not_accepting");
     svc.reopen(agg, null, NOW);
