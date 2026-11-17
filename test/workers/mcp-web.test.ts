@@ -176,6 +176,21 @@ describe("web pages", () => {
     expect(slack.headers.get("Content-Type")).toContain("text/html");
   });
 
+  it("uses the static share image by default and per-poll images only when enabled", async () => {
+    const a = await admin();
+    const r = await req("/api/v1/polls", { method: "POST", json: { ...POLL, publish: true }, headers: { Authorization: `Bearer ${a.token}` } });
+    const path = new URL(((await r.json()) as { public_url: string }).public_url).pathname;
+    const ogImage = async (p: string) => /property="og:image" content="([^"]+)"/.exec(await (await req(p)).text())![1];
+    expect(await ogImage(path)).toBe(`${ORIGIN}/static/og-default.png`);
+    expect(await ogImage("/")).toBe(`${ORIGIN}/static/og-default.png`);
+    const old = await req(`/og/p/${path.split("/").pop()}.png?v=x`);
+    expect(old.status).toBe(302);
+    expect(old.headers.get("Location")).toBe("/static/og-default.png");
+    await setSettings({ og_dynamic: true });
+    expect(await ogImage(path)).toContain(`/og/p/${path.split("/").pop()}.png?v=`);
+    expect(await ogImage("/")).toContain("/og/default.png?v=");
+  });
+
   it("logs in, throttles failures, and protects admin forms with CSRF", async () => {
     const a = await admin();
     const login = (pw: string) => req("/admin/login", { method: "POST", headers: { Origin: ORIGIN, "CF-Connecting-IP": "203.0.113.9" }, body: new URLSearchParams({ username: a.username, password: pw, next: "/admin" }) });
@@ -191,6 +206,11 @@ describe("web pages", () => {
     const saved = await req("/admin/settings", { method: "POST", headers: { Cookie: cookie, Origin: ORIGIN }, body: new URLSearchParams({ csrf, action: "save", creation_mode: "anyone", retention_days: "30", default_timezone: "Europe/Paris" }) });
     expect(saved.status).toBe(200);
     expect(await (await req("/llms.txt")).text()).toContain("Europe/Paris");
+    expect(await (await req("/")).text()).toContain('content="https://toe.test/static/og-default.png"');
+    const on = await req("/admin/settings", { method: "POST", headers: { Cookie: cookie, Origin: ORIGIN }, body: new URLSearchParams({ csrf, action: "save", creation_mode: "anyone", retention_days: "30", default_timezone: "Europe/Paris", og_dynamic: "on" }) });
+    expect(on.status).toBe(200);
+    expect(await on.text()).toMatch(/name="og_dynamic" checked/);
+    expect(await (await req("/")).text()).toContain("/og/default.png?v=");
     for (let i = 0; i < 10; i++) expect((await login("wrong")).status).toBe(401);
     expect((await login(a.password)).status).toBe(429);
     expect(E.SECRET_KEY.length).toBeGreaterThan(31);

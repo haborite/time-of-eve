@@ -16,7 +16,7 @@ import { LIMITS } from "../domain/input";
 import { timingSafeEqual } from "../lib/crypto";
 import { durLabel, isLang, LANG_COOKIE, t, type Lang } from "../lib/i18n";
 import { fromLocal, isoLocal, isValidTimeZone, parseDate, parseTime } from "../lib/time";
-import { cardFor, cardVersion, pollMeta, siteCard, siteMeta } from "../og/card";
+import { cardFor, cardVersion, pollMeta, siteCard, siteMeta, STATIC_OG } from "../og/card";
 import { renderPng } from "../og/render";
 import { getSettings, sanitize, saveSettings } from "../repo/settings";
 import * as users from "../repo/users";
@@ -147,7 +147,7 @@ async function ogResponse(c: C, card: ReturnType<typeof siteCard>) {
     return c.body(png as unknown as ArrayBuffer, 200, { "Content-Type": "image/png", ETag: etag, "Cache-Control": cc });
   } catch (e) {
     console.error("og render failed", e);
-    return c.redirect("/static/og-default.png", 302);
+    return c.redirect(STATIC_OG, 302);
   }
 }
 
@@ -155,6 +155,9 @@ function ogLang(c: C): Lang {
   const q = c.req.query("lang");
   return isLang(q) ? q : c.get("lang");
 }
+
+// Dynamic images off (default): old image URLs in link-preview caches get the static image, without touching D1.
+web.use("/og/*", async (c, next) => (c.get("settings").og_dynamic ? next() : c.redirect(STATIC_OG, 302)));
 
 web.get("/og/default.png", (c) => ogResponse(c, siteCard(ogLang(c))));
 
@@ -492,9 +495,9 @@ web.post("/admin/settings", async (c) => {
   const audit = (act: string, detail: Record<string, unknown>) => d.insert(s.auditLogs).values({ actor: `web:${sess.user.username}`, action: act, detail: JSON.stringify(detail) });
   if (action === "save") {
     if (form.default_timezone && !isValidTimeZone(String(form.default_timezone))) return settingsPage(c, { error: message(lang, "invalid_timezone") }, 400);
-    const next = sanitize({ ...(await getSettings(d)), ...form, retention_days: Number(form.retention_days) });
+    const next = sanitize({ ...(await getSettings(d)), ...form, retention_days: Number(form.retention_days), og_dynamic: form.og_dynamic === "on" });
     await saveSettings(d, next);
-    await audit("settings", { creation_mode: next.creation_mode, retention_days: next.retention_days });
+    await audit("settings", { creation_mode: next.creation_mode, retention_days: next.retention_days, og_dynamic: next.og_dynamic });
     c.set("settings", next);
     return settingsPage(c, { flash: t(lang, "保存しました") });
   }

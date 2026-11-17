@@ -10,7 +10,8 @@ import { deriveToken, timingSafeEqual } from "../lib/crypto";
 import { pKey, type Participant, type Poll } from "./model";
 
 export class Links {
-  constructor(public origin: string, private secret: string) {}
+  /** dynamicOg: share images are drawn per poll (site setting); otherwise the static image is used. */
+  constructor(public origin: string, private secret: string, public dynamicOg = false) {}
 
   url(path = "") {
     return `${this.origin}${path}`;

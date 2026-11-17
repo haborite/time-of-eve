@@ -108,6 +108,8 @@ export function SettingsPage({ v, meta, settings, flash, error, users, me }: {
           </div>
           <h3>{v.t("既定のタイムゾーン")}</h3>
           <input type="text" name="default_timezone" value={settings.default_timezone} class="w-auto" placeholder="Asia/Tokyo" />
+          <h3>{v.t("共有画像（OGP）")}</h3>
+          <label class="radio-row"><input type="checkbox" name="og_dynamic" checked={settings.og_dynamic} data-testid="og-dynamic" /> <b>{v.t("日程調整ごとに画像を生成する")}</b> — <span class="muted">{v.t("オフのときは、すべてのページで共通の静的画像を使います。生成には1枚あたり数十〜数百ミリ秒のCPUを使うため、Workers Paid プランが必要です（無料プランでは生成に失敗し、静的画像になります）。")}</span></label>
           <h3>{v.t("運営者情報（利用規約・プライバシーポリシーに表示）")}</h3>
           <label class="f" for="operator_name">{v.t("運営者名")}</label>
           <input type="text" id="operator_name" name="operator_name" value={settings.operator_name} maxlength={200} />

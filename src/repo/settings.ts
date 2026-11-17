@@ -13,6 +13,8 @@ export interface Settings {
   /** Shown on the legal pages / footer. */
   operator_name: string;
   contact: string;
+  /** Draw a share image per poll (satori + resvg). Off: every page uses the static /static/og-default.png. */
+  og_dynamic: boolean;
 }
 
 export const DEFAULT_SETTINGS: Settings = {
@@ -21,6 +23,7 @@ export const DEFAULT_SETTINGS: Settings = {
   default_timezone: "Asia/Tokyo",
   operator_name: "",
   contact: "",
+  og_dynamic: false,
 };
 
 const KEYS = Object.keys(DEFAULT_SETTINGS) as (keyof Settings)[];
@@ -46,6 +49,7 @@ export function sanitize(v: Record<string, unknown>): Settings {
   if (isValidTimeZone(v.default_timezone)) o.default_timezone = v.default_timezone;
   if (typeof v.operator_name === "string") o.operator_name = v.operator_name.trim().slice(0, 200);
   if (typeof v.contact === "string") o.contact = v.contact.trim().slice(0, 500);
+  if (typeof v.og_dynamic === "boolean") o.og_dynamic = v.og_dynamic;
   return o;
 }
 

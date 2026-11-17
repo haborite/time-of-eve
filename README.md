@@ -131,7 +131,7 @@ Production は `staging` を `production` に読み替えます（Turnstile の�
 
 Production へのデプロイは手動（`npm run db:migrate:production && npm run deploy:production`）です。
 
-**注意**: OGP画像の生成（satori + resvg）は1枚あたり数十〜数百ミリ秒の CPU を使います。無料プランの CPU 上限（10ms）では生成に失敗し、静的な既定画像（`/static/og-default.png`）が使われます。動的な画像を使う場合は Workers Paid プランを推奨します。生成した画像は Cache API にキャッシュします。
+**共有画像（OGP）**: 既定では、すべてのページで静的な画像（`/static/og-default.png`）を使います。日程調整ごとの画像（satori + resvg で生成）は、管理画面の「設定」→「共有画像（OGP）」で有効にできます。生成には1枚あたり数十〜数百ミリ秒の CPU を使うため、Workers Paid プランが必要です（無料プランの CPU 上限 10ms では生成に失敗し、静的画像が使われます）。生成した画像は Cache API にキャッシュします。
 
 `SECRET_KEY` を変えると、管理用URL・編集リンク・セッション・APIトークンはすべて無効になります。
 

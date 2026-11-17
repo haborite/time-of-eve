@@ -11,6 +11,8 @@ import { activeCandidates, effectiveStatus, finalizedCandidate, type PollAggrega
 import { fmtDateTime, fmtRange } from "../domain/views";
 
 export const SITE_NAME = "Time of EVE";
+/** Share image used when dynamic images are off (the default) or fail to render. Served as a static asset. */
+export const STATIC_OG = "/static/og-default.png";
 export const SITE_DESC_JA = "人間にもAIにも使いやすい日程調整ツール。候補を選んでURLを送るだけ。回答はログイン不要、AIエージェントはAPIとMCPで作成から回答まで完結できます。";
 
 export interface Card {
@@ -98,7 +100,7 @@ export async function pollMeta(agg: PollAggregate, lang: Lang, links: Links): Pr
   if (agg.poll.description) desc += (lang === "ja" ? "｜" : " | ") + agg.poll.description;
   return {
     title: card.title, description: clip(desc, 200), url: links.publicUrl(agg.poll),
-    image: links.url(`/og/p/${agg.poll.publicId}.png?v=${await cardVersion(card)}&lang=${lang}`),
+    image: links.dynamicOg ? links.url(`/og/p/${agg.poll.publicId}.png?v=${await cardVersion(card)}&lang=${lang}`) : links.url(STATIC_OG),
     imageAlt: card.period ? `${card.title} — ${card.period}` : card.title,
   };
 }
@@ -106,6 +108,6 @@ export async function pollMeta(agg: PollAggregate, lang: Lang, links: Links): Pr
 export async function siteMeta(lang: Lang, links: Links, path = "/", title?: string, description?: string): Promise<Meta> {
   return {
     title: title ?? SITE_NAME, description: description ?? t(lang, SITE_DESC_JA), url: links.url(path),
-    image: links.url(`/og/default.png?v=${await cardVersion(siteCard(lang))}&lang=${lang}`), imageAlt: SITE_NAME,
+    image: links.dynamicOg ? links.url(`/og/default.png?v=${await cardVersion(siteCard(lang))}&lang=${lang}`) : links.url(STATIC_OG), imageAlt: SITE_NAME,
   };
 }

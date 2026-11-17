@@ -61,9 +61,10 @@ export const base = createMiddleware<HonoEnv>(async (c, next) => {
   const d = db(c.env);
   c.set("db", d);
   c.set("store", new PollStore(d));
-  c.set("links", new Links(origin(c.env), c.env.SECRET_KEY));
   c.set("lang", detectLang(getCookie(c, LANG_COOKIE), c.req.header("accept-language")));
-  c.set("settings", await getSettings(d));
+  const settings = await getSettings(d);
+  c.set("settings", settings);
+  c.set("links", new Links(origin(c.env), c.env.SECRET_KEY, settings.og_dynamic));
   // session (cookie)
   const cookie = getCookie(c, SESSION_COOKIE);
   c.set("session", cookie ? await getSession(d, c.env.SECRET_KEY, cookie) : null);
