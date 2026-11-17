@@ -2,6 +2,8 @@
 
 人間にもAIにも使いやすい日程調整ツール。○△× で都合を集め、重なる時間がひと目で分かります。参加者は登録不要。AIエージェントは REST API と MCP で、作成・回答・集計・確定まで完結できます。
 
+**https://time-of-eve.com/** で稼働しています。
+
 Cloudflare Workers + D1 で動作します（TypeScript / Hono / Drizzle ORM / Zod）。
 
 ![回答ページの例：複数の参加者が○△×で予定を登録した状態](docs/images/screenshot.png)
