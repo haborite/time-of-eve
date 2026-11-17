@@ -27,7 +27,7 @@
     var cols = [];
     for (var m = tl.hourStart * 60; m < tl.hourEnd * 60; m += tl.step) cols.push(slotKey(d.date, m));
     var open = cols.filter(function (k) { return tl.open[k]; });
-    return { i: i, date: d.date, label: d.label, dow: d.dow, cols: cols, open: open };
+    return { i: i, date: d.date, label: d.label, short: d.short, dow: d.dow, cols: cols, open: open };
   });
   var openOrder = [];
   days.forEach(function (d) { d.open.forEach(function (k) { openOrder.push(k); }); });
