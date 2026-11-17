@@ -33,6 +33,59 @@ AIが間違えにくいよう、サーバー側で次のことを引き受けま
 
 詳細は起動後の `/llms.txt` または [src/docs/llms.md](src/docs/llms.md) を参照してください。
 
+### MCPクライアントへの登録例
+
+URL は公開中の `https://time-of-eve.com` の例です。自分でデプロイした場合はそのドメインに読み替えてください。用途に応じて次のどちらかを登録します。
+
+- **参加者・「誰でも」モードでの作成**: `/mcp` をトークンなしで登録します。
+- **管理者**: `/mcp` に APIトークン（管理画面で発行する `sch_…`）を付けて登録するか、`/mcp/admin` を OAuth で登録します。画面のないマシンでは、ブラウザを使わない APIトークン方式が確実です。
+
+**Claude Code**
+
+```sh
+# 参加者・「誰でも」モード
+claude mcp add --transport http time-of-eve https://time-of-eve.com/mcp
+
+# 管理者（APIトークン）
+claude mcp add --transport http time-of-eve-admin https://time-of-eve.com/mcp \
+  --header "Authorization: Bearer $TIME_OF_EVE_TOKEN"
+
+# 管理者（OAuth）: 登録後、Claude Code で /mcp を開いて認証
+claude mcp add --transport http time-of-eve-admin https://time-of-eve.com/mcp/admin
+```
+
+**claude.ai / Claude Desktop**
+
+設定 → コネクタ → カスタムコネクタを追加 で、URL に `https://time-of-eve.com/mcp/admin` を入力します。接続時に同意画面が開くので、管理者でログインして許可します（参加者として使うだけなら `https://time-of-eve.com/mcp` でも構いません）。
+
+**Codex CLI**
+
+```sh
+# 参加者・「誰でも」モード
+codex mcp add time-of-eve --url https://time-of-eve.com/mcp
+
+# 管理者（APIトークン）: トークンは環境変数から読ませる
+export TIME_OF_EVE_TOKEN=sch_xxxxxxxx
+codex mcp add time-of-eve-admin --url https://time-of-eve.com/mcp --bearer-token-env-var TIME_OF_EVE_TOKEN
+
+# 管理者（OAuth）
+codex mcp add time-of-eve-admin --url https://time-of-eve.com/mcp/admin
+codex mcp login time-of-eve-admin
+```
+
+`~/.codex/config.toml` に直接書く場合:
+
+```toml
+[mcp_servers.time-of-eve]
+url = "https://time-of-eve.com/mcp"
+
+[mcp_servers.time-of-eve-admin]
+url = "https://time-of-eve.com/mcp"
+bearer_token_env_var = "TIME_OF_EVE_TOKEN"
+```
+
+登録できたかは `claude mcp list` / `codex mcp list` で確認できます。オプション名はクライアントのバージョンで変わることがあるので、うまくいかない場合は各コマンドの `--help` を参照してください。
+
 ## 構成
 
 ```
