@@ -135,10 +135,17 @@ Production へのデプロイは手動（`npm run db:migrate:production && npm r
 
 `SECRET_KEY` を変えると、管理用URL・編集リンク・セッション・APIトークンはすべて無効になります。
 
+## 謝辞
+
+画面構成と操作感は、2026年10月に終了した「[トントン](https://tonton.amaneku.com/addschedule.php)」とその後継の「[Nextonton](https://nextonton.inotai.net/)」に強く影響を受けています（いずれの運営者とも無関係の非公式プロジェクトです）。
+
+## 名前の由来
+
+本ツールの名前は、次の二つに由来しています。
+
+- 「イベントの時間（time of event）を決めるツール」の略
+- アニメ「[イヴの時間](https://timeofeve.com)」に登場する、人間とアンドロイドが集う喫茶店「イヴの時間（Time of EVE）」
+
 ## ライセンス
 
 [MIT](LICENSE)
-
-## 謝辞
-
-画面構成と操作感は、2026年10月に終了した「トントン」とその後継の「Nextonton」に強く影響を受けています（いずれの運営者とも無関係の非公式プロジェクトです）。
