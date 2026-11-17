@@ -31,8 +31,8 @@ export function HomePage({ v, meta, settings, mcpUrl, llmsUrl }: { v: View; meta
       <section class="home-hero">
         <div class="home-hero-text">
           <p class="home-kicker">{v.t("人間にもAIにも使いやすい日程調整ツール")}</p>
-          <h1 class="home-h1">{v.t("候補をえらんで、URLを送るだけ。")}<br />{v.t("AIにまかせても、ちゃんと決まる。")}</h1>
-          <p class="home-lead">{v.t("○△×で都合を集めて、重なる時間がひと目で分かる日程調整です。参加者は登録いらず。ChatGPTやClaudeなどのAIエージェントも、APIとMCPで作成から回答・確定までこなせます。")}</p>
+          <h1 class="home-h1">{v.t("登録不要でかんたん日程調整")}</h1>
+          <p class="home-lead">{v.t("日時の候補を選んでURLを送るだけ。都合の良い日時がひと目で分かります。APIやMCPを通じてAIエージェントによる作成・回答も可能です。")}</p>
           {open ? (
             <a class="btn-cta home-cta" href="/new" data-testid="home-cta"><span class="arrow" aria-hidden="true">➜</span><span>{v.t("日程をえらぶ")}</span></a>
           ) : (
@@ -45,10 +45,10 @@ export function HomePage({ v, meta, settings, mcpUrl, llmsUrl }: { v: View; meta
       <section class="home-steps">
         <div class="home-step"><span class="home-no">1</span><h2>{v.t("候補をえらんでURLを送る")}</h2>
           <p>{v.t("カレンダーで日付を、タイムラインで時間をなぞるだけ。できたURLをメールやチャットで送ります。")}</p></div>
-        <div class="home-step"><span class="home-no">2</span><h2>{v.t("参加者は登録いらず")}</h2>
+        <div class="home-step"><span class="home-no">2</span><h2>{v.t("登録不要で回答")}</h2>
           <p>{v.t("URLを開いて、名前と都合を入れるだけ。あとから自分の予定を直すこともできます。")}</p></div>
         <div class="home-step"><span class="home-no">3</span><h2>{v.t("重なる時間がひと目で分かる")}</h2>
-          <p>{v.t("みんなの予定を時間ごとに重ねて表示。サーバーが集計して、都合のよい時間を★おすすめします。")}</p></div>
+          <p>{v.t("みんなの予定を時間ごとに重ねて表示。サーバーが集計して、都合のよい時間をおすすめします。")}</p></div>
       </section>
 
       <section class="home-ai card">
@@ -64,7 +64,7 @@ export function HomePage({ v, meta, settings, mcpUrl, llmsUrl }: { v: View; meta
           </div>
           <div>
             <h3>{v.t("集計と確定はサーバーで")}</h3>
-            <p>{v.t("○△×の集計とおすすめの順位はサーバーが決定的に計算します。AIが数え間違えることはありません。確定した日時は参加者のページにも表示されます。")}</p>
+            <p>{v.t("○△×の集計とおすすめの順位はサーバーが決定的に計算します。確定した日時は参加者のページにも表示されます。")}</p>
           </div>
         </div>
         <div class="home-ai-links">

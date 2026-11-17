@@ -479,10 +479,10 @@ body.home main { padding-top: 0; }
 .sample-t td.best { box-shadow: inset 0 2px 0 #2e9e6a, inset 0 -2px 0 #2e9e6a; }
 .home-steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin: 8px 0 22px; }
 .home-step { background: #fff; border-radius: 10px; padding: 18px 18px 8px; border: 1px solid var(--line); position: relative; }
-.home-step h2 { font-size: 16px; margin: 4px 0 6px; padding-left: 40px; min-height: 30px; display: flex; align-items: center; }
+.home-step h2 { font-size: 16px; margin: 4px 0 6px; padding-left: 40px; border-left: 0; min-height: 30px; display: flex; align-items: center; }
 .home-step p { font-size: 14px; color: #555; }
 .home-no { position: absolute; left: 16px; top: 18px; width: 30px; height: 30px; border-radius: 50%; background: var(--brand); color: #fff; font-weight: 700; display: flex; align-items: center; justify-content: center; }
-.home-ai h2 { display: flex; align-items: center; gap: 10px; }
+.home-ai h2 { border-left: 0; padding-left: 0; display: flex; align-items: center; gap: 10px; }
 .home-ai-badge { background: #3c4a5c; color: #fff; border-radius: 6px; padding: 2px 8px; font-size: 13px; letter-spacing: .08em; }
 .home-ai-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
 .home-ai-grid h3 { font-size: 15px; margin: 6px 0; color: var(--brand-dark); }
