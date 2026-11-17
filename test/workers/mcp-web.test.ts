@@ -107,7 +107,11 @@ describe("MCP server", () => {
     const csrf = /name="csrf" value="([^"]+)"/.exec(html)![1];
     const wrongPw = await req("/oauth/authorize", { method: "POST", headers: { Origin: ORIGIN }, body: new URLSearchParams({ state, csrf, username: a.username, password: "nope", decision: "allow" }) });
     expect(wrongPw.status).toBe(401);
-    const ok = await req("/oauth/authorize", { method: "POST", headers: { Origin: ORIGIN }, body: new URLSearchParams({ state, csrf, username: a.username, password: a.password, decision: "allow" }) });
+    const allow = new URLSearchParams({ state, csrf, username: a.username, password: a.password, decision: "allow" });
+    // browsers post this form with `Origin: null` (the page is no-referrer); Sec-Fetch-Site tells same-site from cross-site
+    const cross = await req("/oauth/authorize", { method: "POST", headers: { Origin: "https://evil.example", "Sec-Fetch-Site": "cross-site" }, body: allow });
+    expect(cross.status).toBe(403);
+    const ok = await req("/oauth/authorize", { method: "POST", headers: { Origin: "null", "Sec-Fetch-Site": "same-origin" }, body: allow });
     expect(ok.status).toBe(302);
     const cb = new URL(ok.headers.get("Location")!);
     expect(cb.searchParams.get("state")).toBe("st");

@@ -139,8 +139,11 @@ consent.post("/oauth/authorize", async (c) => {
   const req = state ? await unsign(env, state) : null;
   if (!req) return c.text("The authorization request expired. Start again from your MCP client.", 400);
   if (!timingSafeEqual(String(form.csrf ?? ""), await hmac(env.SECRET_KEY, `oauth-csrf:${state}`))) return c.text("Invalid form", 400);
+  // This page is sent with Referrer-Policy: no-referrer, so browsers submit the form with `Origin: null`.
+  // Trust Sec-Fetch-Site when present (as hono/csrf does for the other forms); otherwise fall back to Origin.
+  const site = c.req.header("sec-fetch-site");
   const o = c.req.header("origin");
-  if (o && o !== origin(env)) return c.text("Invalid origin", 403);
+  if (site ? site !== "same-origin" : o && o !== origin(env)) return c.text("Invalid origin", 403);
   const lang = detectLang(getCookie(c, LANG_COOKIE), c.req.header("accept-language"));
   if (form.decision !== "allow") return c.redirect(authorizationErrorRedirect(req, "access_denied"), 302);
   const d = db(env);
