@@ -484,7 +484,10 @@ body.home main { padding-top: 0; }
 .home-no { position: absolute; left: 16px; top: 18px; width: 30px; height: 30px; border-radius: 50%; background: var(--brand); color: #fff; font-weight: 700; display: flex; align-items: center; justify-content: center; }
 .home-ai h2 { border-left: 0; padding-left: 0; display: flex; align-items: center; gap: 10px; }
 .home-ai-badge { background: #3c4a5c; color: #fff; border-radius: 6px; padding: 2px 8px; font-size: 13px; letter-spacing: .08em; }
-.home-ai-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+.home-ai-row { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 3fr); gap: 28px; align-items: center; margin-bottom: 22px; }
+.home-ai-row > .card { margin: 0; }
+.home-ai-art img { display: block; width: 100%; height: auto; }
+.home-ai-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
 .home-ai-grid h3 { font-size: 15px; margin: 6px 0; color: var(--brand-dark); }
 .home-ai-grid p { font-size: 14px; color: #555; margin: 0; }
 .home-ai-links { margin-top: 14px; display: grid; gap: 8px; }
@@ -494,7 +497,9 @@ body.home main { padding-top: 0; }
 .home-recent ul { margin: 0; padding-left: 20px; }
 .home-recent li { margin: 4px 0; }
 @media (max-width: 760px) {
-  .home-hero, .home-steps, .home-ai-grid { grid-template-columns: 1fr; }
+  .home-hero, .home-steps, .home-ai-grid, .home-ai-row { grid-template-columns: 1fr; }
+  .home-ai-row { gap: 8px; }
+  .home-ai-art { max-width: 300px; margin: 0 auto; }
   .home-h1 { font-size: 23px; }
   .home-ai-links > div { grid-template-columns: 1fr; }
 }

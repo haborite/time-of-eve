@@ -51,28 +51,30 @@ export function HomePage({ v, meta, settings, mcpUrl, llmsUrl }: { v: View; meta
           <p>{v.t("みんなの予定を時間ごとに重ねて表示。サーバーが集計して、都合のよい時間をおすすめします。")}</p></div>
       </section>
 
-      <section class="home-ai card">
-        <h2><span class="home-ai-badge">AI</span>{v.t("AIエージェントにもそのまま使える")}</h2>
-        <div class="home-ai-grid">
-          <div>
-            <h3>{v.t("主催者のAIに")}</h3>
-            <p>{v.t("「来週の平日午後で1時間の打合せの日程調整を作って、URLをちょうだい」と頼むだけ。AIは候補の時間帯を渡し、サーバーが候補に分けて検証・作成します。時差や夏時間の計算もサーバーが行います。")}</p>
+      <div class="home-ai-row">
+        <picture class="home-ai-art">
+          <source srcset="/static/home-ai.webp" type="image/webp" />
+          <img src="/static/home-ai.png" width="720" height="601" alt="" loading="lazy" decoding="async" />
+        </picture>
+        <section class="home-ai card">
+          <h2><span class="home-ai-badge">AI</span>{v.t("AIエージェントにもそのまま使える")}</h2>
+          <div class="home-ai-grid">
+            <div>
+              <h3>{v.t("主催者のAIに")}</h3>
+              <p>{v.t("「来週の平日午後で1時間の打合せの日程調整を作って、URLを参加者にメールして」と頼むだけ。AIは候補の時間帯を渡し、サーバーが候補に分けて検証・作成します。時差や夏時間の計算もサーバーが行います。")}</p>
+            </div>
+            <div>
+              <h3>{v.t("参加者のAIに")}</h3>
+              <p>{v.t("届いたURLをAIに渡して「私の予定で答えておいて」。回答ページはAIが読める形（Markdown・JSON）でも提供され、本人の名前で回答し、あとから修正もできます。")}</p>
+            </div>
           </div>
-          <div>
-            <h3>{v.t("参加者のAIに")}</h3>
-            <p>{v.t("届いたURLをAIに渡して「私の予定で答えておいて」。回答ページはAIが読める形（Markdown・JSON）でも提供され、本人の名前で回答し、あとから修正もできます。")}</p>
+          <div class="home-ai-links">
+            <div><b>MCP</b> <CopyBox v={v} id="mcp-url" value={mcpUrl} label="MCP URL" testid="home-mcp-url" /></div>
+            <div><b>{v.t("AI向けの説明書")}</b> <CopyBox v={v} id="llms-url" value={llmsUrl} label="llms.txt" /></div>
+            <p class="muted">{v.t("Claude・ChatGPTなどのカスタムコネクタにMCPのURLを登録するか、説明書のURLをAIに読ませてください。")} <a href="/docs">{v.t("詳しい使い方")} ›</a></p>
           </div>
-          <div>
-            <h3>{v.t("集計と確定はサーバーで")}</h3>
-            <p>{v.t("○△×の集計とおすすめの順位はサーバーが決定的に計算します。確定した日時は参加者のページにも表示されます。")}</p>
-          </div>
-        </div>
-        <div class="home-ai-links">
-          <div><b>MCP</b> <CopyBox v={v} id="mcp-url" value={mcpUrl} label="MCP URL" testid="home-mcp-url" /></div>
-          <div><b>{v.t("AI向けの説明書")}</b> <CopyBox v={v} id="llms-url" value={llmsUrl} label="llms.txt" /></div>
-          <p class="muted">{v.t("Claude・ChatGPTなどのカスタムコネクタにMCPのURLを登録するか、説明書のURLをAIに読ませてください。")} <a href="/docs">{v.t("詳しい使い方")} ›</a></p>
-        </div>
-      </section>
+        </section>
+      </div>
 
       <section class="home-recent hidden" id="home-recent">
         <h2>{v.t("この端末で開いた日程調整")}</h2>
