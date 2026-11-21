@@ -33,6 +33,9 @@ export interface AnswerBody {
   display_name?: string;
 }
 
+export type Api = ReturnType<typeof createApi>;
+export type MyAnswers = ReturnType<typeof myAnswers>;
+
 export function createApi(base: string) {
   function call<T>(method: string, path: string, body?: unknown, token?: string): Promise<ApiResult<T>> {
     const headers: Record<string, string> = { "Content-Type": "application/json", "X-UI-Lang": LANG };
