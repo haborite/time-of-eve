@@ -2,7 +2,7 @@
  * In-memory poll aggregate and the pure functions over it: status, results/ranking, timeline slots.
  * No database or HTTP here. Mutations mark what changed in `dirty`; the repository writes exactly that.
  */
-import { slotKey, toLocal, ymd } from "../lib/time";
+import { slotKey, toLocal, ymd } from "../shared/time";
 
 // "draft" no longer exists (polls open on creation); the database column still allows it for old rows.
 export const STATUSES = ["open", "closed", "finalized", "cancelled"] as const;

@@ -1,0 +1,17 @@
+{
+  // Node scripts (run as .ts by Node's type stripping). Checked by `npm run typecheck`.
+  "compilerOptions": {
+    "target": "ES2023",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "lib": ["ES2023", "DOM"],   // DOM for the WebCrypto types used by src/lib/crypto.ts
+    "strict": true,
+    "skipLibCheck": true,
+    "noEmit": true,
+    "allowImportingTsExtensions": true,
+    "erasableSyntaxOnly": true,
+    "verbatimModuleSyntax": true,
+    "types": ["node"]
+  },
+  "include": ["./**/*.ts"]
+}

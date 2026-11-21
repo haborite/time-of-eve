@@ -1,7 +1,7 @@
 /** Site settings (admin dashboard), stored as JSON values in the `settings` table with defaults in code. */
 import { inArray, sql } from "drizzle-orm";
 import * as s from "../db/schema";
-import { isValidTimeZone } from "../lib/time";
+import { isValidTimeZone } from "../shared/time";
 import type { DB } from "./polls";
 
 export interface Settings {

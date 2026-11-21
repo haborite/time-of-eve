@@ -1,7 +1,7 @@
 /** @jsxImportSource hono/jsx */
 /** Administrator pages: login, all polls (moderation), settings dashboard, administrators, API tokens. */
 import { fmtDate } from "../lib/i18n";
-import { toLocal } from "../lib/time";
+import { toLocal } from "../shared/time";
 import type { Settings } from "../repo/settings";
 import { STATUS_LABEL_JA, type Meta } from "../og/card";
 import { Alert, CopyBox, Layout, type View } from "./layout";

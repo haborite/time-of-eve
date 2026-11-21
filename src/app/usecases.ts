@@ -12,7 +12,7 @@ import type { Links } from "../domain/links";
 import { cKey, findParticipant, pKey, participantAnswers, type PollAggregate } from "../domain/model";
 import * as svc from "../domain/service";
 import { pollBrief } from "../domain/views";
-import { isoLocal } from "../lib/time";
+import { isoLocal } from "../shared/time";
 import type { PollStore } from "../repo/polls";
 import { withPoll } from "../repo/polls";
 import type { Settings } from "../repo/settings";

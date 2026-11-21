@@ -20,7 +20,7 @@ import { cKey, findCandidate, pKey } from "../domain/model";
 import * as svc from "../domain/service";
 import { pollBrief, pollDetail, publicMarkdown, publicView, resultsView } from "../domain/views";
 import type { Lang } from "../lib/i18n";
-import { isoLocal } from "../lib/time";
+import { isoLocal } from "../shared/time";
 import { guide, pollJsonSchema } from "../docs/docs";
 
 export interface McpContext {

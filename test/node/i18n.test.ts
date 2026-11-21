@@ -1,6 +1,6 @@
 /**
  * Every Japanese UI string must have an English translation in src/i18n/en.json.
- * Collects Japanese string literals from server-rendered views / routes and T("…") calls in browser scripts.
+ * Collects Japanese string literals from server-rendered views / routes and T("…") calls in browser code (src/client).
  */
 import { readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
@@ -48,7 +48,9 @@ describe("translations", () => {
 
   it("browser T() strings have English", () => {
     const missing: string[] = [];
-    for (const f of files("public/static", /\.js$/)) {
+    const sources = files("src/client", /\.ts$/);
+    expect(sources.length).toBeGreaterThan(0);
+    for (const f of sources) {
       const src = readFileSync(join(ROOT, f), "utf8").replace(/\/\*[\s\S]*?\*\//g, "");
       for (const m of src.matchAll(/\bT\("((?:[^"\\]|\\.)*)"/g)) {
         const s = JSON.parse(`"${m[1]}"`);

@@ -1,13 +1,14 @@
 /** @jsxImportSource hono/jsx */
-/** Public answer page /p/<id>: title, ranking, everyone's timeline, answer modal (static/public.js). */
+/** Public answer page /p/<id>: title, ranking, everyone's timeline, answer modal (src/client/public). */
 import type { Links } from "../domain/links";
 import {
   activeCandidates, candidateSlots, cKey, effectiveStatus, finalizedCandidate, pKey, participantSlots, rankedCandidates, results, timeline,
   ANSWERS, type PollAggregate,
 } from "../domain/model";
 import { fmtDateTime, fmtRange } from "../domain/views";
-import { slotKey } from "../lib/time";
+import { slotKey } from "../shared/time";
 import { STATUS_LABEL_JA, type Meta } from "../og/card";
+import type { PublicBoot } from "../shared/public-boot";
 import { Layout, jsonScript, type View } from "./layout";
 
 export function PublicPage({ v, agg, links, meta }: { v: View; agg: PollAggregate; links: Links; meta: Meta }) {
@@ -25,12 +26,12 @@ export function PublicPage({ v, agg, links, meta }: { v: View; agg: PollAggregat
     }
   }
   // Slot keys stay in the poll's time zone (answers are stored that way); `at` gives each slot's absolute start so the
-  // browser can lay the timeline out in the viewer's time zone (static/public.js).
+  // browser can lay the timeline out in the viewer's time zone (src/client/public).
   const at: Record<string, number> = {};
   for (const c of activeCandidates(agg)) {
     for (let ms = c.startAt; ms < c.endAt; ms += tl.step * 60000) at[slotKey(ms, poll.timezone)] ??= ms;
   }
-  const boot = {
+  const boot: PublicBoot = {
     publicId: poll.publicId,
     apiBase: `/api/v1/public/${poll.publicId}`,
     allowMaybe: poll.allowMaybe,
@@ -41,7 +42,7 @@ export function PublicPage({ v, agg, links, meta }: { v: View; agg: PollAggregat
     responded: responders.length,
     finalized: fin ? candidateSlots(agg, fin) : [],
     showNames: poll.showParticipantNames,
-    people: poll.showParticipantNames ? responders.map((p) => ({ id: pKey(p.no), name: p.displayName, slots: marks.get(p.no) })) : [],
+    people: poll.showParticipantNames ? responders.map((p) => ({ id: pKey(p.no), name: p.displayName, slots: marks.get(p.no) ?? {} })) : [],
   };
   const ranked = rankedCandidates(agg);
   const candByKey = new Map(activeCandidates(agg).map((c) => [cKey(c.no), c]));

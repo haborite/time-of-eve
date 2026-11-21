@@ -7,15 +7,16 @@
   "type": "module",
   "scripts": {
     "dev": "wrangler dev",
+    "build:client": "esbuild src/client/home.ts src/client/admin.ts src/client/new.ts src/client/public.ts --bundle --format=iife --target=es2020 --minify --sourcemap --outdir=public/static/js --log-level=warning",
     "build": "wrangler deploy --dry-run --outdir dist",
-    "typecheck": "tsc --noEmit",
+    "typecheck": "tsc --noEmit && tsc -p src/client && tsc -p scripts",
     "test": "vitest run",
     "test:watch": "vitest",
     "db:generate": "drizzle-kit generate",
     "db:migrate:local": "wrangler d1 migrations apply DB --local",
     "db:migrate:staging": "wrangler d1 migrations apply DB --remote --env staging",
     "db:migrate:production": "wrangler d1 migrations apply DB --remote --env production",
-    "admin:create": "node scripts/create-admin.mjs",
+    "admin:create": "node scripts/create-admin.ts",
     "deploy:staging": "wrangler deploy --env staging",
     "deploy:production": "wrangler deploy --env production",
     "cf-typegen": "wrangler types src/worker-configuration.d.ts"
@@ -32,7 +33,9 @@
   },
   "devDependencies": {
     "@cloudflare/vitest-plugin": "^1.8.3",
+    "@types/node": "^24.19.2",
     "drizzle-kit": "^0.31.11",
+    "esbuild": "^0.28.2",
     "typescript": "^7.0.2",
     "vitest": "^4.1.12",
     "wrangler": "^4.163.0"

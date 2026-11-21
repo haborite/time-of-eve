@@ -5,7 +5,7 @@
  */
 import { sha256Hex } from "../lib/crypto";
 import { MONTHS_EN, fmtDate, t, type Lang } from "../lib/i18n";
-import { toLocal, type Local } from "../lib/time";
+import { toLocal, type Local } from "../shared/time";
 import type { Links } from "../domain/links";
 import { activeCandidates, effectiveStatus, finalizedCandidate, type PollAggregate } from "../domain/model";
 import { fmtDateTime, fmtRange } from "../domain/views";

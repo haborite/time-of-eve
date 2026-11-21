@@ -4,7 +4,7 @@
  * Shared by the web UI, the REST API and the MCP server.
  */
 import { randomToken, ulid } from "../lib/crypto";
-import { isValidTimeZone } from "../lib/time";
+import { isValidTimeZone } from "../shared/time";
 import { AppError, Issues } from "./errors";
 import {
   CandidateInput, LIMITS, ParticipantInput, RangeInput, expandRanges, mergeSlots, resolveDateTime, validateCandidates,

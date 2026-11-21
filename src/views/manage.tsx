@@ -8,7 +8,7 @@ import type { Child } from "hono/jsx";
 import { activeCandidates, cKey, effectiveStatus, findCandidate, type PollAggregate } from "../domain/model";
 import { fmtDateTime, fmtRange, resultsView } from "../domain/views";
 import { fmtDate } from "../lib/i18n";
-import { hhmm, toLocal } from "../lib/time";
+import { hhmm, toLocal } from "../shared/time";
 import { STATUS_LABEL_JA, type Meta } from "../og/card";
 import { Alert, CopyBox, Layout, type View } from "./layout";
 
