@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { fromLocal, isoLocal, isValidTimeZone, offsetMinutes, parseIsoDateTime, slotKey, toLocal } from "../../src/lib/time";
+import { fromLocal, isoLocal, isValidTimeZone, offsetMinutes, parseIsoDateTime, slotKey, toLocal } from "../../src/shared/time";
 
 describe("time zones (Intl)", () => {
   it("formats ISO with the zone offset", () => {

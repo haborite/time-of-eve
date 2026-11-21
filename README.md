@@ -103,8 +103,8 @@ src/
   mcp/server.ts     MCPツール・リソース・プロンプト
   views/            画面（Hono JSX でサーバー描画）
   og/               OGP画像
-  lib/              タイムゾーン（Intl）、暗号（WebCrypto）、i18n（一部はブラウザ側と共用）
-  shared/           サーバーとブラウザで共有する型（回答ページの埋め込みデータなど）
+  lib/              サーバー専用の基盤: 暗号（WebCrypto）、i18n（翻訳辞書）
+  shared/           サーバーとブラウザの両方で使うコード: タイムゾーン（Intl）、日付の表記、回答ページの埋め込みデータの型
   client/           ブラウザ用TypeScript（タイムラインUIなど）。esbuild で public/static/js/ に出力
 public/static/      CSS・画像（js/ はビルド生成物で、Git には含めません）
 scripts/            運用スクリプト（Node の TypeScript 実行で動作）

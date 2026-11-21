@@ -1,6 +1,6 @@
 /**
- * Language-dependent formatting shared by the Worker and the browser bundles (src/client).
- * No dictionary here: importing this from browser code must not pull src/i18n/en.json into the bundle.
+ * Language-dependent formatting shared by the Worker and the browser (src/client).
+ * No dictionary here (see src/lib/i18n.ts): browser bundles must not pull in src/i18n/en.json.
  */
 import type { Local } from "./time";
 

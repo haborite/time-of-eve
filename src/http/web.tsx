@@ -15,7 +15,7 @@ import { exportCsv, publicMarkdown, publicView } from "../domain/views";
 import { LIMITS } from "../domain/input";
 import { timingSafeEqual } from "../lib/crypto";
 import { durLabel, isLang, LANG_COOKIE, t, type Lang } from "../lib/i18n";
-import { fromLocal, isoLocal, isValidTimeZone, parseDate, parseTime } from "../lib/time";
+import { fromLocal, isoLocal, isValidTimeZone, parseDate, parseTime } from "../shared/time";
 import { cardFor, cardVersion, pollMeta, siteCard, siteMeta, STATIC_OG } from "../og/card";
 import { renderPng } from "../og/render";
 import { getSettings, sanitize, saveSettings } from "../repo/settings";

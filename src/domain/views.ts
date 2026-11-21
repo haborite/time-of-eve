@@ -6,7 +6,7 @@
  * the poll id (organizer handle) or any token. Per-person answers only when names are public.
  */
 import { fmtDate, type Lang } from "../lib/i18n";
-import { hhmm, isoLocal, toLocal } from "../lib/time";
+import { hhmm, isoLocal, toLocal } from "../shared/time";
 import type { Links } from "./links";
 import {
   activeCandidates, cKey, effectiveStatus, finalizedCandidate, pKey, participantAnswers, responseOptions, results, roster,

@@ -3,9 +3,9 @@
  * browser scripts call T("日本語"). English lives in src/i18n/en.json (a test checks every key used has one).
  */
 import EN_DICT from "../i18n/en.json";
-import { format, isLang, type Lang } from "./i18n-format";
+import { format, isLang, type Lang } from "../shared/i18n-format";
 
-export { LANGS, MONTHS_EN, durLabel, fmtDate, format, isLang, shortDate, type Lang } from "./i18n-format";
+export { LANGS, MONTHS_EN, durLabel, fmtDate, format, isLang, shortDate, type Lang } from "../shared/i18n-format";
 export const LANG_COOKIE = "toe_lang";
 export const EN: Record<string, string> = EN_DICT;
 

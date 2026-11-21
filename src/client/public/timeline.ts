@@ -6,8 +6,8 @@
  * the display zone's date and time. Rows are display-zone dates (a window crossing midnight splits into two rows);
  * columns follow the slots' own boundaries, so zones offset by :15/:45 get :15/:45 columns.
  */
-import { fmtDate, shortDate, type Lang } from "../../lib/i18n-format";
-import { isValidTimeZone, toLocal } from "../../lib/time";
+import { fmtDate, shortDate, type Lang } from "../../shared/i18n-format";
+import { isValidTimeZone, toLocal } from "../../shared/time";
 import type { PublicBoot, SlotKey } from "../../shared/public-boot";
 
 /** What the display time zone is set to: the viewer's zone, the poll's zone, or an IANA zone. */

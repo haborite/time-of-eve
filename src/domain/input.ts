@@ -11,7 +11,7 @@ import { z } from "zod";
 import { sha256Hex } from "../lib/crypto";
 import {
   addDays, fromLocal, fmtOffset, isValidTimeZone, offsetMinutes, parseDate, parseIsoDateTime, parseTime, toLocal, weekdayOf,
-} from "../lib/time";
+} from "../shared/time";
 import { Issues } from "./errors";
 import {
   CandidateInput, ParticipantInput, PollInput, PollInputShape, RangeInput, WEEKDAYS, type PollInputT,

@@ -4,7 +4,7 @@
  */
 import { $, button, capturePointer, closest, el, elementAt, focusOnly, option, pad, releasePointer } from "./lib/dom";
 import { hourLabel, LANG, LOCALE, localDay, shortDate, T, weekendClass } from "./lib/i18n";
-import { WEEKDAYS } from "../lib/i18n-format";
+import { WEEKDAYS } from "../shared/i18n-format";
 import { loadJson, remove, saveJson } from "./lib/storage";
 import {
   candidates, hm, NSLOT, parseDay, pollJson, SLOT, ymdOf, type Day, type SplitMode, type Times,

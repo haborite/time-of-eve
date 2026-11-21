@@ -1,6 +1,6 @@
 {
   // Browser code (bundled by esbuild into public/static/js/*.js). Checked separately from the Worker: DOM types here,
-  // Workers types there. Shared modules (src/lib/i18n-format.ts, src/lib/time.ts, src/shared) are pulled in by import.
+  // Workers types there. Code shared with the Worker lives in src/shared and is pulled in by import.
   "compilerOptions": {
     "target": "ES2020",
     "module": "ES2022",

@@ -1,5 +1,6 @@
 /**
  * Time-zone arithmetic on top of Intl (Workers ship full ICU). Replaces Python's zoneinfo.
+ * Shared by the Worker and the browser (src/client), like everything in src/shared.
  * All instants are epoch milliseconds (UTC). "Local" values are wall-clock fields in an IANA zone.
  */
 

@@ -6,7 +6,7 @@ import {
   ANSWERS, type PollAggregate,
 } from "../domain/model";
 import { fmtDateTime, fmtRange } from "../domain/views";
-import { slotKey } from "../lib/time";
+import { slotKey } from "../shared/time";
 import { STATUS_LABEL_JA, type Meta } from "../og/card";
 import type { PublicBoot } from "../shared/public-boot";
 import { Layout, jsonScript, type View } from "./layout";

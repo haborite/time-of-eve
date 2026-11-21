@@ -2,8 +2,8 @@
  * Browser-side translation: T("日本語の原文", {k: v}) returns the English text when the page language is en.
  * The dictionary is embedded by the layout as <script type="application/json" id="i18n">.
  */
-import { format, shortDate as fmtShortDate, type Lang } from "../../lib/i18n-format";
-import type { Local } from "../../lib/time";
+import { format, shortDate as fmtShortDate, type Lang } from "../../shared/i18n-format";
+import type { Local } from "../../shared/time";
 import { readJson } from "./dom";
 
 const dict = readJson<Record<string, string>>("i18n", {});
