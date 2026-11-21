@@ -6,12 +6,13 @@
  *   npm run admin:create -- <username> --env staging        # remote staging D1
  *   npm run admin:create -- <username> --env production     # remote production D1
  *
- * The password is read from the terminal (hidden) or from ADMIN_PASSWORD. It is hashed here with the same
- * PBKDF2 format as the Worker (src/lib/crypto.ts), so the plain password never leaves this machine.
+ * The password is read from the terminal (hidden) or from ADMIN_PASSWORD. It is hashed here by the Worker's own
+ * hashPassword (src/lib/crypto.ts), so the plain password never leaves this machine.
+ * Runs on Node's built-in TypeScript support (Node 22.18+ / 24).
  * More administrators can then be added from the dashboard (/admin/settings).
  */
 import { spawnSync } from "node:child_process";
-import { webcrypto as crypto } from "node:crypto";
+import { hashPassword } from "../src/lib/crypto.ts";
 
 const args = process.argv.slice(2);
 const envIdx = args.indexOf("--env");
@@ -22,7 +23,7 @@ if (!username || !/^[A-Za-z0-9._-]{2,64}$/.test(username)) {
   process.exit(1);
 }
 
-function readHidden(prompt) {
+function readHidden(prompt: string): Promise<string> {
   return new Promise((resolve) => {
     process.stdout.write(prompt);
     const stdin = process.stdin;
@@ -30,7 +31,7 @@ function readHidden(prompt) {
     stdin.setRawMode?.(true);
     stdin.resume();
     stdin.setEncoding("utf8");
-    const onData = (ch) => {
+    const onData = (ch: string) => {
       if (ch === "\r" || ch === "\n" || ch === "\u0004") {
         stdin.setRawMode?.(false);
         stdin.pause();
@@ -43,14 +44,6 @@ function readHidden(prompt) {
     };
     stdin.on("data", onData);
   });
-}
-
-const b64url = (u) => Buffer.from(u).toString("base64url");
-async function hashPassword(pw, iterations = 100000) {
-  const salt = crypto.getRandomValues(new Uint8Array(16));
-  const key = await crypto.subtle.importKey("raw", new TextEncoder().encode(pw), "PBKDF2", false, ["deriveBits"]);
-  const bits = await crypto.subtle.deriveBits({ name: "PBKDF2", hash: "SHA-256", salt, iterations }, key, 256);
-  return `pbkdf2-sha256$${iterations}$${b64url(salt)}$${b64url(new Uint8Array(bits))}`;
 }
 
 let password = process.env.ADMIN_PASSWORD;

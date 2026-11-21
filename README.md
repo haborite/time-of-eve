@@ -103,11 +103,14 @@ src/
   mcp/server.ts     MCPツール・リソース・プロンプト
   views/            画面（Hono JSX でサーバー描画）
   og/               OGP画像
-  lib/              タイムゾーン（Intl）、暗号（WebCrypto）、i18n
-public/static/      CSS とブラウザ用JS（タイムラインUIなど）
+  lib/              タイムゾーン（Intl）、暗号（WebCrypto）、i18n（一部はブラウザ側と共用）
+  shared/           サーバーとブラウザで共有する型（回答ページの埋め込みデータなど）
+  client/           ブラウザ用TypeScript（タイムラインUIなど）。esbuild で public/static/js/ に出力
+public/static/      CSS・画像（js/ はビルド生成物で、Git には含めません）
+scripts/            運用スクリプト（Node の TypeScript 実行で動作）
 migrations/         D1マイグレーション（drizzle-kit で生成 + 手書きSQL）
 test/workers/       workerd 上の単体・結合テスト（ローカルD1）
-test/node/          静的検査（翻訳の網羅など）
+test/node/          静的検査（翻訳の網羅など）、ブラウザ側ロジックの単体テスト
 ```
 
 設計上のポイント:
@@ -130,21 +133,22 @@ test/node/          静的検査（翻訳の網羅など）
 
 ## ローカル開発
 
-Node.js 22 以上。
+Node.js 22.18 以上（`scripts/*.ts` を Node が直接実行するため。推奨は 24）。
 
 ```sh
 npm install                 # npm 11 では esbuild / workerd の postinstall 許可が必要（package.json の allowScripts）
 cp .dev.vars.example .dev.vars   # SECRET_KEY を書き換える（openssl rand -hex 32）
 npm run db:migrate:local
 npm run admin:create -- admin    # 最初の管理者（パスワードは対話入力）
-npm run dev                      # http://localhost:8823
+npm run dev                      # http://localhost:8823（src/client の変更も自動で再ビルド）
 ```
 
 `/admin/login` でログインし、`/admin/settings` で作成モードなどを設定します。2人目以降の管理者もそこで追加できます。
 
 ```sh
 npm test            # Vitest（workers: ローカルD1を使う結合テスト / node: 静的検査）
-npm run typecheck
+npm run typecheck   # Worker・ブラウザ（src/client）・scripts をそれぞれ型検査
+npm run build:client # ブラウザ用JSだけをビルド（dev / deploy では wrangler が自動で実行）
 npm run db:generate # src/db/schema.ts を変えたら、差分のマイグレーションSQLを生成
 ```
 
