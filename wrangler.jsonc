@@ -16,6 +16,8 @@
   "compatibility_date": "2026-11-01",
   "compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
   "assets": { "directory": "public", "binding": "ASSETS" },
+  // Browser scripts: src/client/*.ts → public/static/js/*.js (esbuild), before `wrangler dev` / `deploy`.
+  "build": { "command": "npm run build:client", "watch_dir": ["src/client", "src/lib", "src/shared"] },
   "rules": [{ "type": "Text", "globs": ["**/*.md"], "fallthrough": true }],
   "observability": { "enabled": true },
   "dev": { "port": 8823 },

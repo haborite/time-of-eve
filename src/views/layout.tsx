@@ -8,7 +8,8 @@ import { raw } from "hono/html";
 import { jsDict, t, type Lang } from "../lib/i18n";
 import type { Meta } from "../og/card";
 
-export const ASSET_V = "3";
+export const ASSET_V = "4";
+export type PageScript = "home.js" | "admin.js" | "new.js" | "public.js";
 
 export interface View {
   lang: Lang;
@@ -53,7 +54,8 @@ export function Layout(props: {
   indexable?: boolean;
   nav?: "default" | "none";
   agentUrls?: AgentUrls;
-  scripts?: string[];
+  /** Page scripts built from src/client/<name>.ts (each bundle includes the browser i18n). */
+  scripts?: PageScript[];
   wide?: boolean;
   children: Child;
 }) {
@@ -125,9 +127,8 @@ export function Layout(props: {
             <div class={props.wide ? "container wide" : "container"}>{props.children}</div>
           </main>
           <Footer v={v} agentUrls={props.agentUrls} />
-          <script type="application/json" id="i18n">{raw(jsDict(v.lang))}</script>
-          <script src={`/static/i18n.js?v=${ASSET_V}`}></script>
-          {(props.scripts ?? []).map((s) => <script src={`/static/${s}?v=${ASSET_V}`}></script>)}
+          {props.scripts?.length ? <script type="application/json" id="i18n">{raw(jsDict(v.lang))}</script> : null}
+          {(props.scripts ?? []).map((s) => <script src={`/static/js/${s}?v=${ASSET_V}`}></script>)}
         </body>
       </html>
     </>

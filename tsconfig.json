@@ -18,5 +18,5 @@
     "types": ["./src/worker-configuration.d.ts", "@cloudflare/vitest-plugin/types"]
   },
   "include": ["src/**/*", "test/workers/**/*"],
-  "exclude": ["test/node/**/*"]
+  "exclude": ["test/node/**/*", "src/client/**/*"]
 }

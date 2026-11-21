@@ -1,6 +1,6 @@
 /** @jsxImportSource hono/jsx */
 /**
- * Poll creation: /new (pick dates and times, static/new.js) → /new/confirm (preview, bot check, create).
+ * Poll creation: /new (pick dates and times, src/client/new) → /new/confirm (preview, bot check, create).
  * /new/import accepts pasted JSON (what an AI agent produced). Administrators skip the bot check.
  */
 import type { RenderedIssue } from "../domain/errors";
